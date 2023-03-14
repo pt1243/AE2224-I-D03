@@ -8,7 +8,7 @@ for i in range(10):
 
         print ("bye world?")
 
-or i in range(15):
+for i in range(15):
     if i < 3:
 
         print ("hello world")
@@ -16,6 +16,14 @@ or i in range(15):
 
 
         print ("bye world?")
+x = 5
+for i in range(5):
+    x = 1 + x
+
+print(x)
+
+    
+
 
 
 
