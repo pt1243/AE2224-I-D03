@@ -9,6 +9,7 @@ import pandas as pd
 
 data_stacks = 1
 t_begin = 0
+allfreq = np.zeros((data_stacks, 10))
 t_end = 1
 samplingfreq = 1000
 X=np.linspace(t_begin, t_end, samplingfreq)
@@ -23,22 +24,19 @@ kurtosis = sp.stats.kurtosis(Y_std)
 crest_factor = np.max(Y)/np.sqrt(np.mean(Y**2))
 k_factor = np.max(Y)/np.mean(Y)
 
-
-
-freq, Psd = signal.welch(Y, samplingfreq, nperseg=1024)
+freq, Psd = signal.welch(Y, len(Y)/(t_begin - t_end) , nperseg=1024)
 
 Y_fft = np.fft.fft(Y)
 
 Mag = np.abs(Y_fft)
 Phase = np.angle(Y_fft)
 
-frequencies = np.fft.fftfreq(len(Y), (t_begin - t_end)/samplingfreq)
+
 
 window_size = 11
 order = 2   
 
 Y_savgol=savgol_filter(Y, window_size, order)
-i=10
 
 dir_path = os.path.join(os.getcwd(), 'plots')
 if not os.path.exists(dir_path):
@@ -46,8 +44,12 @@ if not os.path.exists(dir_path):
 
 for i in range(0, data_stacks):
     Y_fft = np.fft.fft(Y)
-    frequencies = np.fft.fftfreq(len(Y), (t_begin - t_end)/samplingfreq)
-
+    frequencies = np.fft.fftfreq(len(Y), (t_begin - t_end)/len(Y))
+    indices=np.argsort(Y)
+    for k in range(10):
+            freqfft.append(frequencies[indices[-k]])
+    allfreq[i, :] = freqfft
+    np.delate(allfreq)
     plt.plot(frequencies, abs(Y_fft))
     plt.xlabel('Frequency [Hz]')
     plt.ylabel('Amplitude')
