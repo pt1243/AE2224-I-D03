@@ -27,7 +27,7 @@ Phase = np.angle(Y_fft)
 frequencies = np.fft.fftfreq(len(Y), 1/samplingfreq)
 
 window_size = 11
-order = 2
+order = 2   
 
 Y_savgol=savgol_filter(Y, window_size, order)
 
