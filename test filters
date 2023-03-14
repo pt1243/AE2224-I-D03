@@ -5,9 +5,10 @@ from scipy import signal
 import scipy as sp
 from scipy.signal import savgol_filter
 
-
+t_begin = 0
+t_end = 1
 samplingfreq = 1000
-X=np.linspace(0, 1, samplingfreq)
+X=np.linspace(t_begin, t_end, samplingfreq)
 Y=np.sin(2*np.pi*50*X) + 0.5*np.sin(2*np.pi*120*X)
 
 
@@ -28,19 +29,27 @@ Y_fft = np.fft.fft(Y)
 Mag = np.abs(Y_fft)
 Phase = np.angle(Y_fft)
 
-frequencies = np.fft.fftfreq(len(Y), 1/samplingfreq)
+frequencies = np.fft.fftfreq(len(Y), (t_begin - t_end)/samplingfreq)
 
 window_size = 11
 order = 2   
 
 Y_savgol=savgol_filter(Y, window_size, order)
 #compute skewness, kurtosis, crest factor, and K factor in python
-
+plt.subplots
+#save multiple plots in python
 plt.plot(frequencies, abs(Y_fft))
 plt.xlabel('Frequency [Hz]')
 plt.ylabel('Amplitude')
 plt.savefig('fft1.png')
+plt.clf()
 
-plt.figure()
 plt.semilogy(freq, Psd)
 plt.savefig('psd1.png')
+plt.clf()
+plt.plot(X, Y)
+plt.savefig('original1.png')
+plt.clf()
+plt.plot(X, Y_savgol)
+plt.savefig('savgol1.png')
+plt.clf()
