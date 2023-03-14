@@ -5,23 +5,31 @@ from scipy import signal
 import scipy as sp
 from scipy.signal import savgol_filter
 
-#import data into numpy array
+
 samplingfreq = 1000
 X=np.linspace(0, 1, samplingfreq)
 Y=np.sin(2*np.pi*50*X) + 0.5*np.sin(2*np.pi*120*X)
 
 
+mean = np.mean(Y)
+std = np.std(Y)
+Y_std = (Y-mean)/std
 
-
+#compute frequency response function for given data in python
 
 freq, Psd = signal.welch(Y, samplingfreq, nperseg=1024)
 
 Y_fft = np.fft.fft(Y)
 
+Mag = np.abs(Y_fft)
+Phase = np.angle(Y_fft)
+
 frequencies = np.fft.fftfreq(len(Y), 1/samplingfreq)
 
 window_size = 11
 order = 2
+
+Y_savgol=savgol_filter(Y, window_size, order)
 
 
 plt.hist(Y_ftt, bins=50)
