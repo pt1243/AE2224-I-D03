@@ -44,9 +44,3 @@ plt.savefig('fft1.png')
 plt.figure()
 plt.semilogy(freq, Psd)
 plt.savefig('psd1.png')
-
-
-#save many plots at the same time
-#apply savgol filter in python
-#convert time series to frequency domain in python
-#compute power spectral density in python
