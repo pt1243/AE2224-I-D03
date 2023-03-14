@@ -4,7 +4,10 @@ from mpl_toolkits.mplot3d import Axes3D
 from scipy import signal
 import scipy as sp
 from scipy.signal import savgol_filter
+import os
+import pandas as pd
 
+data_stacks = 1
 t_begin = 0
 t_end = 1
 samplingfreq = 1000
@@ -20,7 +23,7 @@ kurtosis = sp.stats.kurtosis(Y_std)
 crest_factor = np.max(Y)/np.sqrt(np.mean(Y**2))
 k_factor = np.max(Y)/np.mean(Y)
 
-#compute frequency response function for given data in python
+
 
 freq, Psd = signal.welch(Y, samplingfreq, nperseg=1024)
 
@@ -35,21 +38,32 @@ window_size = 11
 order = 2   
 
 Y_savgol=savgol_filter(Y, window_size, order)
-#compute skewness, kurtosis, crest factor, and K factor in python
-plt.subplots
-#save multiple plots in python
-plt.plot(frequencies, abs(Y_fft))
-plt.xlabel('Frequency [Hz]')
-plt.ylabel('Amplitude')
-plt.savefig('fft1.png')
-plt.clf()
+i=10
 
-plt.semilogy(freq, Psd)
-plt.savefig('psd1.png')
-plt.clf()
-plt.plot(X, Y)
-plt.savefig('original1.png')
-plt.clf()
-plt.plot(X, Y_savgol)
-plt.savefig('savgol1.png')
-plt.clf()
+dir_path = os.path.join(os.getcwd(), 'plots')
+if not os.path.exists(dir_path):
+    os.makedirs(dir_path)
+
+for i in range(0, data_stacks):
+    Y_fft = np.fft.fft(Y)
+    frequencies = np.fft.fftfreq(len(Y), (t_begin - t_end)/samplingfreq)
+
+    plt.plot(frequencies, abs(Y_fft))
+    plt.xlabel('Frequency [Hz]')
+    plt.ylabel('Amplitude')
+    file_path = os.path.join(dir_path, 'fft'+str(i)+'.png')
+    plt.savefig(file_path)
+    plt.clf()
+    plt.semilogy(freq, Psd)
+    file_path = os.path.join(dir_path, 'psd'+str(i)+'.png')
+    plt.savefig(file_path)
+    plt.clf()
+    plt.plot(X, Y)
+    plt.savefig(file_path)
+    file_path = os.path.join(dir_path, 'original'+str(i)+'.png')
+    plt.clf()
+    plt.plot(X, Y_savgol)
+    file_path = os.path.join(dir_path, 'savgol'+str(i)+'.png')
+    plt.savefig(file_path)
+    plt.clf()
+    #save figures in vs code folder python
