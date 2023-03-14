@@ -1,0 +1,43 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+from scipy import signal
+import scipy as sp
+from scipy.signal import savgol_filter
+
+#import data into numpy array
+samplingfreq = 1000
+X=np.linspace(0, 1, samplingfreq)
+Y=np.sin(2*np.pi*50*X) + 0.5*np.sin(2*np.pi*120*X)
+
+
+
+
+
+freq, Psd = signal.welch(Y, samplingfreq, nperseg=1024)
+
+Y_fft = np.fft.fft(Y)
+
+frequencies = np.fft.fftfreq(len(Y), 1/samplingfreq)
+
+window_size = 11
+order = 2
+
+
+plt.hist(Y_ftt, bins=50)
+plt.savefig('hist1.png')
+
+plt.plot(frequencies, abs(Y.fft))
+plt.xlabel('Frequency [Hz]')
+plt.ylabel('Amplitude')
+plt.savefig('fft1.png')
+
+plt.figure()
+plt.semilogy(freq, Psd)
+plt.savefig('psd1.png')
+
+
+#save many plots at the same time
+#apply savgol filter in python
+#convert time series to frequency domain in python
+#compute power spectral density in python
