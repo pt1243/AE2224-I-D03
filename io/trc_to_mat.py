@@ -1,6 +1,5 @@
 import glob
 import pathlib
-from typing import Tuple
 
 import matlab.engine
 
@@ -26,7 +25,7 @@ def main():
 
     process = True if found_version < MAT_VERSION else False
 
-    def output_file(input_file: pathlib.Path) -> Tuple[pathlib.Path, pathlib.Path]:
+    def output_file(input_file: pathlib.Path) -> tuple[pathlib.Path, pathlib.Path]:
         _, _, cycle, filename = input_file.parts
         output_folder = MAT_DIR.joinpath(cycle)
         output_filename = output_folder.joinpath(filename).with_suffix('.mat')
@@ -34,7 +33,6 @@ def main():
 
     if process:
         input_files = [RAW_DATA_DIR.joinpath(f) for f in glob.glob('**/*.trc', root_dir=RAW_DATA_DIR)]
-        print(input_files[0])
 
         eng = matlab.engine.start_matlab()
         eng.addpath(eng.genpath('.'), nargout=0)
