@@ -6,8 +6,8 @@ from paths import NPZ_DIR
 def load_npz(filename):
     """Open the data from a file."""
     contents = np.load(filename)
-    x, y, desc = contents['x'], contents['y'], contents['desc']
-    return x, y, desc
+    x, t, desc = contents['x'], contents['y'], contents['desc']
+    return x, t, desc
 
 
 def load_data(cycle: str, signal_type: str, emitter: int, receiver: int, frequency: int):
@@ -24,16 +24,16 @@ def load_data(cycle: str, signal_type: str, emitter: int, receiver: int, frequen
     if signal_type not in allowed_signal_types:
         raise ValueError(f"Invalid signal type '{signal_type}, must be either 'excitation' or 'received'")
     if emitter not in allowed_emitters:
-        raise ValueError
+        raise ValueError(f"Invalid emitter number {emitter}, must be from 1 to 6")
     if receiver not in allowed_receivers:
-        raise ValueError
+        raise ValueError(f"Invalid receiver number {receiver}, must be from 1 to 6")
     if emitter in [1, 2, 3]:
         if receiver in [1, 2, 3]:
-            raise ValueError
+            raise ValueError(f"Invalid combination of emitter number {emitter} and receiver number {receiver}")
     elif receiver in [4, 5, 6]:
-        raise ValueError
+        raise ValueError(f"Invalid combination of emitter number {emitter} and receiver number {receiver}")
     if frequency not in allowed_frequencies:
-        raise ValueError
+        raise ValueError(f"Invalid frequency '{frequency}', must be either 100, 120, 140, 160, or 180 [kHz]")
     
 
     try:
@@ -51,6 +51,10 @@ def load_data(cycle: str, signal_type: str, emitter: int, receiver: int, frequen
     return x, t, desc
 
 
+"""
+Sample usage
+
+
 x_1, t_1, desc_1 = load_data(
     cycle='0',
     signal_type='received',
@@ -58,5 +62,4 @@ x_1, t_1, desc_1 = load_data(
     receiver=4,
     frequency=100
 )
-
-# print(t_1)
+"""
