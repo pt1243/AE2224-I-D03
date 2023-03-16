@@ -51,7 +51,7 @@ def load_data(cycle: str, signal_type: str, emitter: int, receiver: int, frequen
     return x, t, desc
 
 
-x_1, y_1, desc_1 = load_data(
+x_1, t_1, desc_1 = load_data(
     cycle='0',
     signal_type='received',
     emitter=1,
@@ -59,4 +59,4 @@ x_1, y_1, desc_1 = load_data(
     frequency=100
 )
 
-# print(desc_1)
+# print(t_1)
