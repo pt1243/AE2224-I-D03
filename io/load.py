@@ -47,8 +47,8 @@ def load_data(cycle: str, signal_type: str, emitter: int, receiver: int, frequen
 
     full_path = NPZ_DIR.joinpath(folder, filename)
 
-    x, y, desc = load_npz(full_path)
-    return x, y, desc
+    t, x, desc = load_npz(full_path)
+    return t, x, desc
 
 
 x_1, y_1, desc_1 = load_data(
@@ -59,4 +59,4 @@ x_1, y_1, desc_1 = load_data(
     frequency=100
 )
 
-print(desc_1)
+# print(desc_1)
