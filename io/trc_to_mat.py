@@ -4,11 +4,10 @@ from typing import Tuple
 
 import matlab.engine
 
+from paths import MAT_DIR, RAW_DATA_DIR
+
 
 def main():    
-    DATA_DIR = pathlib.Path('./data')
-    MAT_DIR = DATA_DIR.joinpath('matlab_files')
-    RAW_DATA_DIR = DATA_DIR.joinpath('L2_S2')
     VERSION_FILE = MAT_DIR.joinpath('version.txt')
     MAT_VERSION = 1
 

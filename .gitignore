@@ -2,6 +2,9 @@
 data/L2_S2/
 data/matlab_files/
 
+# VS Code settings
+.vscode/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
