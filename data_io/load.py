@@ -1,6 +1,8 @@
+from __future__ import absolute_import
+
 import numpy as np
 
-from paths import NPZ_DIR
+from .paths import NPZ_DIR
 
 
 def load_npz(filename):
