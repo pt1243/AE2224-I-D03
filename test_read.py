@@ -1,4 +1,11 @@
-with open('data/L2_S2/L2_S2_cycle_0/C1_mono_1_saine_emetteur_1_recepteur_2_excitation_5_00000.trc', 'rb') as f:
-    contents = f.readlines()
+from data_io.load import load_data
 
-print(contents)
+x, t, desc = load_data(
+    cycle='0',
+    signal_type='received',
+    emitter=1,
+    receiver=4,
+    frequency=100
+)
+
+print(x)
