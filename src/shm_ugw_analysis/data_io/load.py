@@ -1,16 +1,20 @@
+import pathlib
+
 import numpy as np
 
 from shm_ugw_analysis.data_io.paths import NPZ_DIR
 
 
-def _load_npz(filename):
+def _load_npz(filename: pathlib.Path) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """Open the data from a file."""
     contents = np.load(filename)
     t, x, desc = contents['x'], contents['y'], contents['desc']
     return x, t, desc
 
 
-def load_data(cycle: str, signal_type: str, emitter: int, receiver: int, frequency: int):
+def load_data(
+        cycle: str, signal_type: str, emitter: int, receiver: int, frequency: int
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, str, str, pathlib.Path]:
     """Loads the data for a given measurement."""
 
     allowed_cycles = ['AI', '0', '1', '1000', '10000', '20000', '30000', '40000', '50000', '60000', '70000', 'Healthy']
@@ -47,18 +51,22 @@ def load_data(cycle: str, signal_type: str, emitter: int, receiver: int, frequen
 
     full_path = NPZ_DIR.joinpath(folder, filename)
 
+    x: np.ndarray
+    t: np.ndarray
+    desc: np.ndarray
+
     x, t, desc = _load_npz(full_path)
-    return x, t, desc
+    return x, t, desc, folder, filename, full_path
 
 
 
-# Sample usage
+# # Sample usage
 
 
-x_1, t_1, desc_1 = load_data(
-    cycle='0',
-    signal_type='received',
-    emitter=1,
-    receiver=4,
-    frequency=100
-)
+# x_1, t_1, desc_1 = load_data(
+#     cycle='0',
+#     signal_type='received',
+#     emitter=1,
+#     receiver=4,
+#     frequency=100
+# )
