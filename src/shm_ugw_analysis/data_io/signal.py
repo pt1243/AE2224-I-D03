@@ -1,6 +1,7 @@
 import pathlib
 
 import numpy as np
+import math
 
 from shm_ugw_analysis.data_io.load import load_data
 
@@ -35,8 +36,11 @@ class Signal:
         self._t.setflags(write=False)
         self._desc.setflags(write=False)
 
-        self._sample_interval: float = self._desc[0]
-        self._sample_frequency: float = self._desc[1]
+        self._sample_interval: float = np.around(self._desc[0], decimals=8)
+        self._sample_frequency: int = int(np.around(self._desc[1]))
+        
+        self._length = self._x.size
+        print(self._length)
         
         return
     
@@ -93,4 +97,21 @@ class Signal:
         """Editable copy of the oscilloscope readings."""
         return np.copy(self._x)
     
-s1 = Signal('0', 'received', 1, 4, 100)
+    def data(self) -> np.ndarray:
+        """Returns x and t in one array of shape (125002, 2).
+        
+        Equivalent indexing:
+
+        t = data[:, 0]
+        x = data[:, 1]
+
+        t[i] = data[i, 0]
+        x[i] = data[i, 1]
+
+        data[i, :] = [t[i], x[i]]
+        """
+        return np.vstack((self._t, self._x.T)).T
+
+
+    
+s = Signal('AI', 'received', 1, 6, 100)
