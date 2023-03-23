@@ -12,17 +12,17 @@ def _load_npz(filename: pathlib.Path) -> tuple[np.ndarray, np.ndarray, np.ndarra
     return x, t, desc
 
 
+allowed_cycles = ('AI', '0', '1', '1000', '10000', '20000', '30000', '40000', '50000', '60000', '70000', 'Healthy')
+allowed_signal_types = ('excitation', 'received')
+allowed_emitters = (1, 2, 3, 4, 5, 6)
+allowed_receivers = allowed_emitters
+allowed_frequencies = (100, 120, 140, 160, 180)
+
+
 def load_data(
         cycle: str, signal_type: str, emitter: int, receiver: int, frequency: int
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray, str, str, pathlib.Path]:
     """Loads the data for a given measurement."""
-
-    allowed_cycles = ['AI', '0', '1', '1000', '10000', '20000', '30000', '40000', '50000', '60000', '70000', 'Healthy']
-    allowed_signal_types = ['excitation', 'received']
-    allowed_emitters = [i for i in range(1, 7)]
-    allowed_receivers = allowed_emitters
-    allowed_frequencies = [100, 120, 140, 160, 180]
-
     if cycle not in allowed_cycles:
         raise ValueError(f"Invalid cycle '{cycle}', must be one of {allowed_cycles}")
     if signal_type not in allowed_signal_types:
@@ -47,7 +47,10 @@ def load_data(
 
     c1_f1 = 'C1' if signal_type == 'excitation' else 'F1'
     freq = str(frequency // 20)
-    filename = f'{c1_f1}_mono_1_saine_emetteur_{emitter}_recepteur_{receiver}_excitation_{freq}_00000.npz'
+    if cycle == 'Healthy':
+        filename = f'{c1_f1}_L2_S2_healthy_emetteur_{emitter}_recepteur_{receiver}_excitation_{freq}_00000.npz'
+    else:
+        filename = f'{c1_f1}_mono_1_saine_emetteur_{emitter}_recepteur_{receiver}_excitation_{freq}_00000.npz'
 
     full_path = NPZ_DIR.joinpath(folder, filename)
 
@@ -57,16 +60,3 @@ def load_data(
 
     x, t, desc = _load_npz(full_path)
     return x, t, desc, folder, filename, full_path
-
-
-
-# # Sample usage
-
-
-# x_1, t_1, desc_1 = load_data(
-#     cycle='0',
-#     signal_type='received',
-#     emitter=1,
-#     receiver=4,
-#     frequency=100
-# )
