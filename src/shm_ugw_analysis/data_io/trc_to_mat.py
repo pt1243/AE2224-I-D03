@@ -6,13 +6,13 @@ import matlab.engine
 from shm_ugw_analysis.data_io.paths import MAT_DIR, RAW_DATA_DIR
 
 
-def main():    
+def main():
     VERSION_FILE = MAT_DIR.joinpath('version.txt')
     MAT_VERSION = 1
 
     if not pathlib.Path.exists(MAT_DIR):
         pathlib.Path.mkdir(MAT_DIR)
-    
+
     if pathlib.Path.exists(VERSION_FILE):
         with open(VERSION_FILE, 'r') as f:
             version_str = f.readlines()[0]
@@ -41,13 +41,12 @@ def main():
             output_folder, output_filename = output_file(file)
             if not pathlib.Path.exists(output_folder):
                 pathlib.Path.mkdir(output_folder)
-            
+
             eng.ReadLeCroyBinaryWaveform(str(file), str(output_filename), nargout=0)
-        
-        
+
         with open(VERSION_FILE, 'w+') as f:
             f.write(str(MAT_VERSION))
-            
+
 
 if __name__ == '__main__':
     main()

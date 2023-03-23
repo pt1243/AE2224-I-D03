@@ -38,7 +38,6 @@ def load_data(
         raise ValueError(f"Invalid combination of emitter number {emitter} and receiver number {receiver}")
     if frequency not in allowed_frequencies:
         raise ValueError(f"Invalid frequency '{frequency}', must be either 100, 120, 140, 160, or 180 [kHz]")
-    
 
     try:
         folder = f'L2_S2_cycle_{int(cycle)}'
