@@ -15,8 +15,7 @@ from shm_ugw_analysis.data_io.load import (
 
 
 class Signal:
-    def __init__(self,
-            cycle: str, signal_type: str, emitter: int, receiver: int, frequency: int) -> None:
+    def __init__(self, cycle: str, signal_type: str, emitter: int, receiver: int, frequency: int) -> None:
         self._cycle: str = cycle
         self._signal_type: str = signal_type
         self._emitter: int = emitter
