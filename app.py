@@ -75,42 +75,37 @@ if not os.path.exists(dir_path):
 for h in range(0, len(frequency)):
     for z in range(0, len(emitter)):
         for k in range(0 , len(receiver)):
-
+            fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(20, 10))
             for j in range(0, len(cycles)):
+                #plot two subplots
+                
                 x = datasetfinal[2*j, :, k, z, h]
                 t = datasetfinal[2*j+1, :, k, z, h]
                 x_std = (x - np.mean(x))/np.std(x)
                 x_fft = np.fft.fft(x_std)
-
                 #apply gaussian filter
                 x_fft = sp.ndimage.gaussian_filter1d(x_fft, sigma=10)
-                #numerical integration of fft
-                for k in range(0,  len(t)-1):
-                    int += (x_fft[k]+x_fft[k+1])/2*(t[k+1]-t[k])
+                #numerical integration of fft using trapezoid rule
                 Mag = np.abs(x_fft)
+                Mag = Mag/np.trapz(Mag, dx = 1/samplingfreq)
                 frequencies = np.fft.fftfreq(len(x_std), 1/samplingfreq)
-                plt.plot(frequencies, Mag/int, label = 'cycle '+str(cycles[j]))
-                plt.grid()
-                plt.xlabel('Frequency [Hz]')
-                plt.ylabel('Amplitude')
-                plt.xlim(0, 7*10**5)
-                plt.legend()
-                plt.title('FFT'+ 'receiver'+str(receiver[k]) + 'emitter'+str(emitter[z])+'frequency'+str(frequency[h])+'KHz')
-                file_path = os.path.join(dir_path, 'FFT'+ 'emitter'+str(emitter[z])+'receiver'+str(receiver[k])+'frequency'+str(frequency[h])+'KHz'+'.png') 
+                ax1.plot(frequencies, Mag, label = 'cycle '+str(cycles[j]))
+                ax1.grid()
+                ax1.set_xlabel('Frequency [Hz]')
+                ax1.set_ylabel('Amplitude')
+                ax1.set_xlim(0.5*10**5, 7*10**5)
+                ax1.legend()
+                ax1.set_title('FFT'+ 'receiver'+str(receiver[k]) + 'emitter'+str(emitter[z])+'frequency'+str(frequency[h])+'KHz')
                 freq, Psd = signal.welch(x_std, samplingfreq, nperseg=1024)
+                PSD = Psd/np.trapz(Psd, dx = 1/samplingfreq)
                 #set plot size
-                plt.plot(freq, Psd, label = 'cycle '+str(cycles[i]))
-                plt.grid()
-                plt.xlabel('Frequency [Hz]')
-                plt.ylabel('Power (W)')
-                plt.xlim(0, 7*10**5)
-                plt.legend()
-                plt.title('PSD'+ 'receiver'+str(receiver[k]) + 'emitter'+str(emitter[z])+'frequency'+str(frequency[h])+'KHz')
-                file_path = os.path.join(dir_path, 'PSD'+'emitter'+str(emitter[z])+'receiver'+str(receiver[k])+ 'frequency'+str(frequency[h])+'KHz'+'.png')
-                plt.savefig(file_path, dpi = 400)
-           
-
-
-
-#plot two subplots
-    
+                ax2.plot(freq, Psd, label = 'cycle '+str(cycles[j]))
+                ax2.grid()
+                ax2.set_xlabel('Frequency [Hz]')
+                ax2.set_ylabel('Power (W)')
+                ax2.set_xlim(0.5*10**5, 7*10**5)
+                ax2.legend()
+                ax2.set_title('PSD'+ 'receiver'+str(receiver[k]) + 'emitter'+str(emitter[z])+'frequency'+str(frequency[h])+'KHz')
+            file_path = os.path.join(dir_path, 'FFT+PSD'+'emitter'+str(emitter[z])+'receiver'+str(receiver[k])+ 'frequency'+str(frequency[h])+'KHz'+'.png')
+            plt.savefig(file_path, dpi = 500)
+            plt.clf()
