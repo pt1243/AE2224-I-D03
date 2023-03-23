@@ -4,6 +4,7 @@ from shm_ugw_analysis.data_io.load import load_data
 
 def data(cycle='0', emitter=1, receiver=4, frequency=100):
     x, t, desc = load_data(cycle=cycle, signal_type='received', emitter=emitter, receiver=receiver, frequency=frequency)
+    # TODO: see changes if window changes
     start, end = np.searchsorted(t, -0.5e-5), np.searchsorted(t, 2.5e-5)
     result = x[start:end]
     result = (result - np.mean(result)/np.std(result))
@@ -51,3 +52,15 @@ def differential_signal_energy(cycle='70000', emitter=1, receiver=4, frequency=1
     b = x0 / np.sqrt(np.sum(x0 * x0))
     d = x / np.sqrt(np.sum(x*x))
     return np.sum((b-d)**2)
+
+
+def modified_mann_kendall(x, t):
+    n = len(x)
+    num = den = 0
+    for i in range(n):
+        for j in range(i+1, n):
+            num += (t[j]-t[i])*(np.sign(x[j]-x[i]))
+            den += t[j]-t[i]
+            pass
+        pass
+    return abs(num / den)
