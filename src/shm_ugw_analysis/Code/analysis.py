@@ -5,6 +5,7 @@ import di_functions as di
 
 cycles = ['1', '1000', '10000', '20000', '30000', '40000', '50000', '60000', '70000']
 frequencies = list(range(100, 200, 20))
+dis = [di.cross_correlation, di.central_spectrum_loss, di.spectrum_loss, di.differential_signal_energy, di.spatial_phase_difference, di.differential_curve_energy]
 
 
 def plot_di():
@@ -14,10 +15,16 @@ def plot_di():
     nb_cycles = list(map(int, cycles))
     plt.plot(nb_cycles, dis)
     plt.show()
-    print(di.modified_mann_kendall(nb_cycles, nb_cycles))
+    print(di.modified_mann_kendall(dis, nb_cycles))
     pass
 
 
-# plot_di()
+def score_dis():
+    for d in dis:
+        res = np.array([d(cycle=c, emitter=2, receiver=5, frequency=140) for c in cycles])
+        print(di.modified_mann_kendall(res, list(map(int, cycles))))
+        pass
+    pass
 
-print(di.modified_mann_kendall([-1, 2, 3, -4, 5], [1, 2, 3, 4, 5]))
+
+score_dis()

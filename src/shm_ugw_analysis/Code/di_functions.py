@@ -1,11 +1,13 @@
 import numpy as np
-from shm_ugw_analysis.data_io.load import load_data
+from shm_ugw_analysis.data_io.signal import Signal
 
 
 def data(cycle='0', emitter=1, receiver=4, frequency=100):
-    x, t, desc = load_data(cycle=cycle, signal_type='received', emitter=emitter, receiver=receiver, frequency=frequency)
-    # TODO: see changes if window changes
+    s = Signal(cycle, 'received', emitter, receiver, frequency)
+    x, t = s.x, s.t
+
     start, end = np.searchsorted(t, -0.5e-5), np.searchsorted(t, 2.5e-5)
+
     result = x[start:end]
     result = (result - np.mean(result)/np.std(result))
     return result
