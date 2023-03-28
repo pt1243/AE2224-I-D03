@@ -3,7 +3,6 @@ from scipy import signal
 import matplotlib.pyplot as plt
 from shm_ugw_analysis.data_io.load import load_data
 
-noisy_signal = 3
 emitter = [1, 2, 3]
 #convert list to numpy array
 emitter = np.array(emitter)
@@ -26,6 +25,8 @@ for j in range(0, len(frequency)):
                 emitter=emitter[z],
                 receiver=receiver[k],
                 frequency=frequency[j])
+                x = x
+                t = t
 
                 
 
@@ -35,16 +36,16 @@ for j in range(0, len(frequency)):
 
 
 #for now applied on a rondom signal, with added noise, should be added to signal
-t = np.linspace(-1, 1, 201)
+#t = np.linspace(-1, 1, 201)
 #t = t_1
 #x_noisy = x_1
-x = (np.sin(2*np.pi*0.75*t*(1-t) + 2.1) +
-0.1*np.sin(2*np.pi*1.25*t + 1) +
- 0.18*np.cos(2*np.pi*3.85*t))
-rng = np.random.default_rng()
-x_noisy = x + rng.standard_normal(len(t)) * 0.08
+#x = (np.sin(2*np.pi*0.75*t*(1-t) + 2.1) +
+#0.1*np.sin(2*np.pi*1.25*t + 1) +
+# 0.18*np.cos(2*np.pi*3.85*t))
+#rng = np.random.default_rng()
+#x_noisy = x + rng.standard_normal(len(t)) * 0.08
 
-for h in range(0,len(frequency)):
+
 
 
 #second order, lowpass filter, in which b,a are both 1D arrays
@@ -58,13 +59,13 @@ for h in range(0,len(frequency)):
 #now we apply the filter by using filfilt
                 y = signal.filtfilt(b, a, x)
 
-plt.figure
-plt.plot(t, x ,'b', alpha=0.75)
-plt.plot(t, z, 'r--', t, z2, 'r', t, y, 'k')
-plt.legend(('noisy signal', 'lfilter, once', 'lfilter, twice',
-            'filtfilt'), loc='best')
-plt.grid(True)
-plt.show()
+                plt.figure
+                plt.plot(t, x ,'b', alpha=0.75)
+                plt.plot(t, z, 'r--', t, z2, 'r', t, y, 'k')
+                plt.legend(('noisy signal', 'lfilter, once', 'lfilter, twice',
+                     'filtfilt'), loc='best')
+                plt.grid(True)
+                plt.show()
 
 #def butter_bandpass(lowcut, highcut, t, order):
    # nyq = 0.5 * fs
