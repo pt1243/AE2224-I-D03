@@ -25,16 +25,18 @@ for j in range(0, len(frequency)):
                 emitter=emitter[z],
                 receiver=receiver[k],
                 frequency=frequency[j])
-                x = x
-                t = t
-
                 
 
+t = datasetfinal[1,:, 0, 0, 0]
+x = datasetfinal[0, :, 0, 0, 0]
 
+t_begin = t[0]
+t_end = t[-1]
+deltat = t[1]-t[0]
+samplingfreq = 1/(t[1]-t[0])
+plt.plot(t, x)
 
-
-
-
+            
 #for now applied on a rondom signal, with added noise, should be added to signal
 #t = np.linspace(-1, 1, 201)
 #t = t_1
@@ -49,23 +51,23 @@ for j in range(0, len(frequency)):
 
 
 #second order, lowpass filter, in which b,a are both 1D arrays
-                b, a = signal.butter(3, 0.05, btype='low') 
+b, a = signal.butter(3, 0.05, btype='low') 
 
 #now apply the filter to the noisy signal, with initial conditions
-                zi = signal.lfilter_zi(b, a)
-                z, _ = signal.lfilter(b, a, x, zi=zi*x[0])
-                z2, _ = signal.lfilter(b, a, z, zi=zi*z[0])
+zi = signal.lfilter_zi(b, a)
+z, _ = signal.lfilter(b, a, x, zi=zi*x[0])
+z2, _ = signal.lfilter(b, a, z, zi=zi*z[0])
 
 #now we apply the filter by using filfilt
-                y = signal.filtfilt(b, a, x)
+y = signal.filtfilt(b, a, x)
 
-                plt.figure
-                plt.plot(t, x ,'b', alpha=0.75)
-                plt.plot(t, z, 'r--', t, z2, 'r', t, y, 'k')
-                plt.legend(('noisy signal', 'lfilter, once', 'lfilter, twice',
-                     'filtfilt'), loc='best')
-                plt.grid(True)
-                plt.show()
+plt.figure
+plt.plot(t, x ,'b', alpha=0.75)
+plt.plot(t, z, 'r--', t, z2, 'r', t, y, 'k')
+plt.legend(('noisy signal', 'lfilter, once', 'lfilter, twice',
+            'filtfilt'), loc='best')
+plt.grid(True)
+plt.show()
 
 #def butter_bandpass(lowcut, highcut, t, order):
    # nyq = 0.5 * fs
