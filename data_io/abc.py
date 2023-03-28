@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
+from mpl_toolksits.mplot3d import Axes3D
 from scipy import signal
 import scipy as sp
 from scipy.signal import savgol_filter
@@ -35,6 +35,7 @@ for j in range(0, len(frequency)):
 t = datasetfinal[1,:, 0, 0, 0]
 x = datasetfinal[0, :, 0, 0, 0]
 maxval = []
+degree = 6
 freqmax = []
 maxvalpsd = = np.zeros((len(receiver)*len(emitter)*len(frequency), len(cycles)))
 freqmaxpsd = []
@@ -62,38 +63,43 @@ for j in range(0, len(cycles)):
                 frequencies = np.fft.fftfreq(len(x_std), 1/samplingfreq)
                 #integrate fft wrt frequency
                 Mag=Mag/np.trapz(Mag, dx = np.max(frequencies)/len(frequencies))
-    
+                polycfft = np.polyfit(frequencies, Mag, degree)
+                #function evaluating polynomial with coefficients polycfft
+                def polynomialfft(xp, degree):
+                    for k in range(degree+1):
+                        sum += polycfft[k]*xp**(degree-k)
+                    return sum
+
+                    
+
                 #find index of the maximum value
-                maxindex = np.argmax(Mag)
-                maxval = Mag[maxindex]
-                freqmax = frequencies[maxindex]
                 #plot the point on the graph
-                plt.plot(freqmax, maxval, 'ro' label = 'cycle '+str(cycles[j]))
-                #ax1.plot(frequencies, Mag, label = 'cycle '+str(cycles[j]))
-                #ax1.grid()  
-                #ax1.set_xlabel('Frequency [Hz]')
-                #ax1.set_ylabel('Amplitude')
-                #ax1.legend()
-                #plt.savefig('FFT+PSD'+ 'receiver'+str(receiver[k]) + 'emitter'+str(emitter[z])+'frequency'+str(frequency[h])+'KHz'+'.png', dpi = 500)
-                #plt.clf()
-                #ax1.set_title('FFT'+ 'receiver'+str(receiver[k]) + 'emitter'+str(emitter[z])+'frequency'+str(frequency[h])+'KHz')
-                #freq, Psd = signal.welch(x_std, samplingfreq, nperseg=1024)
-                #PSD = Psd/np.trapz(Psd, dx = freq[-1]/len(freq))
-                #maxindexpsd = np.argmax(PSD)
-                #maxvalpsd = PSD[maxindexpsd]
-                #freqmaxpsd = freq[maxindexpsd]
-                #plot a point
-                counter+=1
-            
-                #ax2.plot(freq, Psd, label = 'cycle '+str(cycles[j]))
-                #ax2.grid()
-                #ax2.set_xlabel('Frequency [Hz]')
-                #ax2.set_ylabel('Power (W)')
-                #ax2.set_xlim(0.5*10**5, 7*10**5)
-                #ax2.legend()
-                #ax2.set_title('PSD'+ 'receiver'+str(receiver[k]) + 'emitter'+str(emitter[z])+'frequency'+str(frequency[h])+'KHz')
-            #file_path = os.path.join(dir_path, 'FFT+PSD'+'emitter'+str(emitter[z])+'receiver'+str(receiver[k])+ 'frequency'+str(frequency[h])+'KHz'+'.png')
-            #plt.savefig(file_path, dpi = 500)
+                ax1.plot(frequencies, Mag, label = 'cycle '+str(cycles[j]))
+                ax1.plot(frequencies, polynomialfft(frequencies, degree), label = 'polycycle '+str(cycles[j])
+                ax1.grid()  
+                ax1.set_xlabel('Frequency [Hz]')
+                ax1.set_ylabel('Amplitude')
+                ax1.set_title('FFT'+ 'receiver'+str(receiver) + 'emitter'+str(emitter[z])+'frequency'+str(frequency[h])+'KHz')
+                ax1.set_xlim(0.5*10**5, 7*10**5)
+                ax1.legend()
+                freq, Psd = signal.welch(x_std, samplingfreq, nperseg=1024)
+                PSD = Psd/np.trapz(Psd, dx = freq[-1]/len(freq))
+                polycpsd = np.polyfit(freq, PSD, degree)
+                def polynomialpsd(xp, degree):
+                    for k in range(degree+1):
+                        sum += polycpsd[k]*xp**(degree-k)
+                    return sum
+                ax2.plot(freq, PSD, label = 'cycle '+str(cycles[j]))
+                ax2.plot(freq, polynomialpsd(freq, degree) label = 'polycycle '+str(cycles[j]) )
+                ax2.grid()
+                ax2.set_xlabel('Frequency [Hz]')
+                ax2.set_ylabel('Power (W)')
+                ax2.set_xlim(0.5*10**5, 7*10**5)
+                ax2.legend()
+                ax2.set_title('PSD'+ 'receiver'+str(receiver[k]) + 'emitter'+str(emitter[z])+'frequency'+str(frequency[h])+'KHz')
+            file_path = os.path.join(dir_path, 'FFT+PSD'+'emitter'+str(emitter[z])+'receiver'+str(receiver[k])+ 'frequency'+str(frequency[h])+'KHz'+'.png')
+            plt.savefig(file_path, dpi = 300)
+            plt.clf()
            
     
-plt.show()
+
