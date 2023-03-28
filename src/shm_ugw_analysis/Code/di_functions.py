@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 from shm_ugw_analysis.data_io.signal import Signal
 
 
@@ -54,6 +55,53 @@ def differential_signal_energy(cycle='70000', emitter=1, receiver=4, frequency=1
     b = x0 / np.sqrt(np.sum(x0 * x0))
     d = x / np.sqrt(np.sum(x*x))
     return np.sum((b-d)**2)
+
+
+def resonance_max_val(s):
+    resonance_frequency = 280e3
+
+    x, t = s.x, s.t
+    start, end = np.searchsorted(t, -0.5e-5), np.searchsorted(t, 2.5e-5)
+    x = x[start:end]
+    x = x - np.mean(x)
+    x = x / np.std(x)
+
+    n = len(x)
+    fourier = np.abs(np.fft.fft(x)[:n//2] / n)
+    frequencies = np.fft.fftfreq(n, d=s.sample_interval)[:n//2]
+
+    start, end = np.searchsorted(frequencies, resonance_frequency-60e3) - 1, np.searchsorted(frequencies, resonance_frequency+40e3)
+    max_val = np.max((fourier[start:end]))
+
+    return max_val
+
+
+def resonance_max_freq(s):
+    resonance_frequency = 280e3
+
+    x, t = s.x, s.t
+    start, end = np.searchsorted(t, -0.5e-5), np.searchsorted(t, 2.5e-5)
+    x = x[start:end]
+    x = x - np.mean(x)
+    x = x / np.std(x)
+
+    n = len(x)
+    fourier = np.abs(np.fft.fft(x)[:n//2] / n)
+    frequencies = np.fft.fftfreq(n, d=s.sample_interval)[:n//2]
+
+    start, end = np.searchsorted(frequencies, resonance_frequency-60e3) - 1, np.searchsorted(frequencies, resonance_frequency+40e3)
+    # print(start, end)
+    max_val = np.max((fourier[start:end]))
+    max_freq = frequencies[start + list(fourier[start:end]).index(max_val)]
+
+    # plt.plot(frequencies, fourier)
+    # plt.axvline(x=s.frequency*1000, color='red', linestyle='--')
+    # plt.axvline(x=resonance_frequency, color='blue', linestyle='--')
+    # plt.axvline(x=max_freq, color='green', linestyle='--')
+    # plt.xlim(1, 1e6)
+    # plt.show()
+
+    return max_freq
 
 
 def modified_mann_kendall(x, t):

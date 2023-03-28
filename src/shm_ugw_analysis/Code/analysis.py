@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import di_functions as di
+from shm_ugw_analysis.data_io.signal import Signal
 
 
 cycles = ['1', '1000', '10000', '20000', '30000', '40000', '50000', '60000', '70000']
@@ -9,7 +10,7 @@ dis = [di.cross_correlation, di.central_spectrum_loss, di.spectrum_loss, di.diff
 
 
 def plot_di():
-    dis = np.array([di.cross_correlation(cycle=c, emitter=2, receiver=5, frequency=140) for c in cycles])
+    dis = np.array([di.resonance_max_freq(Signal(c, 'received', 2, 5, 180)) for c in cycles])
     dis -= np.min(dis)
     dis /= np.max(dis)
     nb_cycles = list(map(int, cycles))
@@ -27,4 +28,4 @@ def score_dis():
     pass
 
 
-score_dis()
+plot_di()
