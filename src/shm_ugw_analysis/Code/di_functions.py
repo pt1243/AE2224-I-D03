@@ -104,6 +104,49 @@ def resonance_max_freq(s):
     return max_freq
 
 
+def excitation_max_val(s):
+    x, t = s.x, s.t
+    start, end = np.searchsorted(t, -0.5e-5), np.searchsorted(t, 2.5e-5)
+    x = x[start:end]
+    x = x - np.mean(x)
+    x = x / np.std(x)
+
+    n = len(x)
+    fourier = np.abs(np.fft.fft(x)[:n//2] / n)
+    frequencies = np.fft.fftfreq(n, d=s.sample_interval)[:n//2] / 1000
+
+    start, end = np.searchsorted(frequencies, s.frequency-60) - 1, np.searchsorted(frequencies, s.frequency+40)
+    max_val = np.max((fourier[start:end]))
+
+    return max_val
+
+
+def excitation_max_freq(s):
+    x, t = s.x, s.t
+    start, end = np.searchsorted(t, -0.5e-5), np.searchsorted(t, 2.5e-5)
+    x = x[start:end]
+    x = x - np.mean(x)
+    x = x / np.std(x)
+
+    n = len(x)
+    fourier = np.abs(np.fft.fft(x)[:n//2] / n)
+    frequencies = np.fft.fftfreq(n, d=s.sample_interval)[:n//2] / 1000
+
+    start, end = np.searchsorted(frequencies, s.frequency-60) - 1, np.searchsorted(frequencies, s.frequency+40)
+    # print(start, end)
+    max_val = np.max((fourier[start:end]))
+    max_freq = frequencies[start + list(fourier[start:end]).index(max_val)]
+    # print(max_val, max_freq)
+
+    # plt.plot(frequencies, fourier)
+    # plt.axvline(x=s.frequency, color='red', linestyle='--')
+    # plt.axvline(x=max_freq, color='green', linestyle='--')
+    # plt.xlim(1, 1000)
+    # plt.show()
+
+    return max_freq
+
+
 def modified_mann_kendall(x, t):
     n = len(x)
     num = den = 0
@@ -114,3 +157,6 @@ def modified_mann_kendall(x, t):
             pass
         pass
     return abs(num / den)
+
+
+excitation_max_freq(Signal('10000', 'received', 2, 5, 120))
