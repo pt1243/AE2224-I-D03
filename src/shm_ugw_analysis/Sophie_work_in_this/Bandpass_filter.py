@@ -30,11 +30,6 @@ for j in range(0, len(frequency)):
 t = datasetfinal[1,:, 0, 0, 0]
 x = datasetfinal[0, :, 0, 0, 0]
 
-t_begin = t[0]
-t_end = t[-1]
-deltat = t[1]-t[0]
-samplingfreq = 1/(t[1]-t[0])
-plt.plot(t, x)
 
             
 #for now applied on a rondom signal, with added noise, should be added to signal
@@ -46,8 +41,6 @@ plt.plot(t, x)
 # 0.18*np.cos(2*np.pi*3.85*t))
 #rng = np.random.default_rng()
 #x_noisy = x + rng.standard_normal(len(t)) * 0.08
-
-
 
 
 #second order, lowpass filter, in which b,a are both 1D arrays
