@@ -3,7 +3,7 @@ import pathlib
 
 import matlab.engine
 
-from paths import MAT_DIR, RAW_DATA_DIR
+from shm_ugw_analysis.data_io.paths import MAT_DIR, RAW_DATA_DIR
 
 
 def main():    
@@ -26,7 +26,7 @@ def main():
     process = True if found_version < MAT_VERSION else False
 
     def output_file(input_file: pathlib.Path) -> tuple[pathlib.Path, pathlib.Path]:
-        _, _, cycle, filename = input_file.parts
+        *_, cycle, filename = input_file.parts
         output_folder = MAT_DIR.joinpath(cycle)
         output_filename = output_folder.joinpath(filename).with_suffix('.mat')
         return output_folder, output_filename
