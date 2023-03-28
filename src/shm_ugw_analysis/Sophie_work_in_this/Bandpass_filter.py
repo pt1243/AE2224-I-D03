@@ -29,6 +29,7 @@ for j in range(0, len(frequency)):
 
 t = datasetfinal[1,:, 0, 0, 0]
 x = datasetfinal[0, :, 0, 0, 0]
+plt.plot(t,x)
 
 
             
