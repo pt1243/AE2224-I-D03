@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from scipy.ndimage import gaussian_filter1d
-from scipy.signal import savgol_filter, welch
+from scipy.signal import savgol_filter, welch, hilbert, find_peaks, find_peaks_cwt, peak_widths
 from scipy import ndimage
 import os
 import pandas as pd
@@ -24,6 +24,17 @@ if not pathlib.Path.exists(PLOT_DIR):
 # We may apply scipy.signal.coherence to create a unitless comparison of similarity
 # between 2 time series vectors x and y computed using Welch cross power spectral
 # density equations: Cxy = abs(Pxy)**2/(Pxx*Pyy)
+
+def maxr(freq, Mag):
+    max = 0
+    index = 0
+    for i in range(0, len(Mag)):
+        if freq[i] > (frequency[j]-40)*10**3 and freq[i] < (frequency[j]+40)*10**3:
+            if Mag[i] > max:
+                max = Mag[i]
+                index = i
+    return max, index
+
 
 def fft_and_psd_plots(sc: signal_collection, bin_width, emitter, receiver):
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(20, 10))
@@ -56,18 +67,55 @@ def fft_and_psd_plots(sc: signal_collection, bin_width, emitter, receiver):
         y_fft = fft(x_std)
         x_fft = fftfreq(N, d=1/fs)
         y_fft_magnitude = np.abs(y_fft)
-        y_fft_magnitude = gaussian_filter1d(y_fft_magnitude, sigma=5)
-        #y_fft_magnitude_dB = 10*np.log10(y_fft_magnitude)
-        
+        y_fft_magnitude = gaussian_filter1d(y_fft_magnitude, sigma=1)
+        y_fft_magnitude_dB = 10*np.log10(y_fft_magnitude)
+        y_fft_magnitude_dB = gaussian_filter1d(y_fft_magnitude_dB, sigma=1)
         # Welch PSD Method
         x_psd_welch, y_psd_welch = welch(x, fs, nperseg=nperseg)
         y_psd_welch_magnitude = np.abs(y_psd_welch)
         y_psd_welch_magnitude_dB = 10*np.log10(y_psd_welch_magnitude)
+        '''
+        x = electrocardiogram()[2000:4000]
+        peaks, _ = find_peaks(x, height=0)
+        plt.plot(x)
+        plt.plot(peaks, x[peaks], "x")
+        plt.plot(np.zeros_like(x), "--", color="gray")
+        plt.show()
+        '''
 
+        '''
+        # Hilber Transform/Envelope
+        analytic_signal = hilbert(y_psd_welch_magnitude)
+        amplitude_envelope = np.abs(analytic_signal)
+        '''
         # Plotting
-        ax1.plot(x_fft, y_fft_magnitude, label = f'cycle {s.cycle}')
+        ax1.plot(x_fft, y_fft_magnitude_dB, label = f'cycle {s.cycle}')
         ax2.plot(x_psd_welch, y_psd_welch_magnitude_dB, label = f'cycle {s.cycle}')
+        #ax2.plot(x_psd_welch, amplitude_envelope, label='envelope')
+        
+        # Peak Finding
+        border_min = -97
+        border_max = -50
+        psd_welch_peaks_location, _ = find_peaks(y_psd_welch_magnitude_dB, height=(border_min, border_max))
+        x_psd_welch_peaks = x_psd_welch[psd_welch_peaks_location]
+        y_psd_welch_peaks = y_psd_welch_magnitude_dB[psd_welch_peaks_location]
+        print(f'Plot "PSD emitter {emitter} receiver {receiver} frequency {s.frequency} kHz" has peaks of magnitude {y_psd_welch_peaks} at locations {psd_welch_peaks_location}')
 
+        ax2.plot(x_psd_welch_peaks, y_psd_welch_peaks, "x")
+        ax2.plot(border_min, "--", color="gray")
+        ax2.plot(border_max, ":", color="gray")
+
+        #plt.plot(peaks, x[peaks], "x")
+        #results_half = peak_widths(x, peaks, rel_height=0.5)
+
+        # Peak Width Finding
+        results_half = peak_widths(y_psd_welch_peaks, x_psd_welch, rel_height=0.5)
+        results_full = peak_widths(y_psd_welch_peaks, x_psd_welch, rel_height=1)
+        print(results_half[0])
+        print(results_full[0])
+        ax2.hlines(*results_half[1:], color="C2")
+        ax2.hlines(*results_full[1:], color="C3")
+        
     ax1.grid()  
     ax1.set_xlabel('Frequency [Hz]')
     ax1.set_ylabel('Amplitude')
@@ -88,8 +136,8 @@ def fft_and_psd_plots(sc: signal_collection, bin_width, emitter, receiver):
     plt.savefig(file_path, dpi = 500)
     return
 
-cycles=['0', '1', '10000', '20000', '30000', '40000', '50000', '60000', '70000']
-# cycles = ['0']
+#cycles=['0', '1', '10000', '20000', '30000', '40000', '50000', '60000', '70000']
+cycles = ['20000']
 signal_types=['excitation']
 # emitters=list(allowed_emitters)
 emitters = [1]
@@ -103,7 +151,7 @@ for frequency in frequencies:
         for receiver in receivers:
             try:
                 sc = signal_collection(cycles=tuple(cycles), signal_types=tuple(signal_types), emitters=[emitter], receivers=[receiver], frequencies=[frequency])
-                fft_and_psd_plots(sc, 10000, emitter, receiver)
+                fft_and_psd_plots(sc, 5000, emitter, receiver)
             except Exception:
                 continue
 
