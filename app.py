@@ -15,7 +15,13 @@ receiver = np.array(receiver)
 frequency = [100, 120, 140, 160, 180]
 cycles = ['0', '1', '1000', '10000', '20000', '30000', '40000', '50000', '60000', '70000']
 #create a string of ten different colors
-colors = ['blue', 'red', 'green', 'yellow', 'black', 'orange', 'purple', 'brown', 'pink', 'gray']
+#generate list of colors in order lighest to darkest (start from yellow, progress to black)
+colors = ['yellow', 'orange', 'pink', 'red', 'purple', 'blue', 'green', 'brown', 'grey', 'black']
+
+
+
+
+
 
 #write code loading data into numpy array
 
@@ -23,14 +29,13 @@ degree = 10
 dir_path = os.path.join(os.getcwd(), 'plots')
 if not os.path.exists(dir_path):
     os.makedirs(dir_path)
-
-for j in range(0, len(frequency)):
-    fig, (ax1, ax2) = plt.subplots(1, 2)
-    for h in range(0, len(cycles)):
-        Maxfrequency = []
-        Maxmag = []
-        Maxpsd = []
-        Maxfreq = []
+fig, (ax1, ax2) = plt.subplots(1, 2)
+for h in range(0, len(cycles)):
+    Maxfrequency = []
+    Maxmag = []
+    Maxpsd = []
+    Maxfreq = []
+    for j in range(0, len(frequency)):
         for z in range(0, len(emitter)):
             for k in range(0 , len(receiver)):
             #create two subplots
@@ -43,6 +48,10 @@ for j in range(0, len(frequency)):
                     
                     t = s.t
                     x = s.x
+                    #write the function finding max of the x array
+                    
+
+
                     samplingfreq = 1/(t[1]-t[0])
                     x_std = (x - np.mean(x))/np.std(x)
                     x_fft = np.fft.fft(x_std)
@@ -57,7 +66,7 @@ for j in range(0, len(frequency)):
                         max = 0
                         index = 0
                         for i in range(0, len(Mag)):
-                            if freq[i] > (frequency[j]-20)*10**3 and freq[i] < (frequency[j]+20)*10**3:
+                            if freq[i] > (frequency[j]-40)*10**3 and freq[i] < (frequency[j]+40)*10**3:
                                 if Mag[i] > max:
                                     max = Mag[i]
                                     index = i
@@ -92,26 +101,33 @@ for j in range(0, len(frequency)):
                     max, index = maxr(freq, psd)
                     Maxpsd.append(max)
                     Maxfreq.append(freq[index])
-    #sort freq and corresponding PSD values
-        ax1.scatter(Maxfrequency , Maxmag,   label = 'cycle '+str(cycles[h]), color = colors[h])
-        ax2.scatter(Maxfreq, Maxpsd, label = 'cycle '+str(cycles[h]), color = colors[h])
-    #ax1.set_xlim((frequency[j]-20)*10**3, (frequency[j]+20)*10**3)
-#ax1.set_ylim(0.99*np.max(Mag), 1.01*np.max(Mag))
+    Maxfrequencyaverage = np.mean(Maxfrequency)
+    Maxmagaverage = np.mean(Maxmag)
+    Maxfreqaverage = np.mean(Maxfreq)
+    Maxpsdaverage = np.mean(Maxpsd)
+    #plot a labelled point using pyplot.scatter
+    ax1.scatter(Maxfrequencyaverage, Maxmagaverage, color = colors[h], label = 'cycles = '+str(cycles[h]))
+    ax2.scatter(Maxfreqaverage, Maxpsdaverage, color = colors[h], label = 'cycles = '+str(cycles[h]))
 
-    ax2.grid()
+    #sort freq and corresponding PSD values
+    #ax1.set_xlim((frequency[j]-20)*10**3, (frequency[j]+20)*10**3)
+    #ax1.set_ylim(0.99*np.max(Mag), 1.01*np.max(Mag))
+    #write function storing the maximum value of fft and corresponding frequency
+    
+ax2.grid()
     
     
-    ax2.set_xlabel('Frequency [Hz]')
-    ax2.set_ylabel('Power (W)')
+ax2.set_xlabel('Frequency [Hz]')
+ax2.set_ylabel('Power (W)')
     #ax2.set_xlim((frequency[j]-20)*10**3, (frequency[j]+20)*10**3)
     #position legend to the right of the subplots
-    ax2.legend(loc = 'upper right')
-    ax2.set_title('PSD')
-    ax1.grid()  
-    ax1.set_xlabel('Frequency [Hz]')
-    ax1.set_ylabel('Amplitude')
-    file_path = os.path.join(dir_path, 'FFT+PSD'+'emitter'+str(emitter[z])+'receiver'+str(receiver[k])+ 'frequency'+str(frequency[j])+'KHz'+'.png')
-    plt.savefig(file_path, dpi = 400)
-    plt.clf()
+ax2.legend(loc = 'center left', bbox_to_anchor = (1, 0.5))
+ax2.set_title('PSD')
+ax1.grid()  
+ax1.set_xlabel('Frequency [Hz]')
+ax1.set_ylabel('Amplitude')
+file_path = os.path.join(dir_path, 'FFT+PSD'+'emitter'+str(emitter[z])+'receiver'+str(receiver[k])+ 'frequency'+str(frequency[j])+'KHz'+'.png')
+plt.savefig(file_path, dpi = 400)
+plt.clf()
     
-           
+    
