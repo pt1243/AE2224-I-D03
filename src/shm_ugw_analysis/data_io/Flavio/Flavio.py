@@ -18,7 +18,8 @@ import pywt
 #y = healthy_lists[50][1]
 def plot(cycle: str, signal_type: str, emitter: int, receiver: int, frequency: int, x_bounds: list, y_bounds: list):
     y, t, desc = load_data(cycle, signal_type, emitter, receiver, frequency)
-    label = "cycle_" + str(cycle) + "-" + str(signal_type) + "-emitter_" + str(emitter) + "-receiver_" + str(receiver) + "-frequency_" + str(frequency)
+    #label = "cycle_" + str(cycle) + "-" + str(signal_type) + "-emitter_" + str(emitter) + "-receiver_" + str(receiver) + "-frequency_" + str(frequency)
+    label = "cycle " + str(cycle) + ", " + str(signal_type) + ", " + str(emitter) + "-" + str(receiver) + ", " + str(frequency)
     plt.plot(t, y, label=label)
     plt.xlim(x_bounds[0],x_bounds[1])
     plt.ylim(y_bounds[0],y_bounds[1])
@@ -30,12 +31,12 @@ def plot(cycle: str, signal_type: str, emitter: int, receiver: int, frequency: i
 
 cycle = '0' 
 signal_type = 'received'
-emitter = 2
-receiver = 4
+emitter =1
+receiver = 5
 frequency = 100
 
 x_bounds = [0,0.00002] #x domain shown
-y_bounds = [-10,10] #y domain shown
+y_bounds = [-0.1,0.1] #y domain shown
 x_bounds1 = [0,0.00002]
 y_bounds1 = [-0.25,0.25]
 
@@ -69,46 +70,108 @@ def scalogram_plot(cycle: str, signal_type: str, emitter: int, receiver:int, fre
 
     scales = np.arange(1, 31)
 
+    freqs = pywt.scale2frequency('morl', scales)
+    min_freq, max_freq = freqs[0], freqs[-1]
+    num_freqs = len(freqs)
+    new_freqs = np.linspace(min_freq, max_freq, num_freqs)
+
     coef, freqs = pywt.cwt(y, scales, 'morl') #Finding CWT
 
     fig = plt.figure(figsize=(15,10))
-    plt.imshow(abs(coef), extent=[0, 200, 30, 1], interpolation='bilinear', cmap='hot', aspect='auto', vmax=abs(coef).max(), vmin=-abs(coef).max())
+    plt.imshow(abs(coef), extent=[0, 0.00002, max_freq, min_freq], interpolation='bilinear', cmap='jet', aspect='auto', vmax=abs(coef).max(), vmin=-abs(coef).max())
     #plt.gca().invert_yaxis()
-    plt.yticks(np.arange(1, 31, 1))
-    plt.xticks(np.arange(0, 201, 1))
-    label = "cycle_" + str(cycle) + "-" + str(signal_type) + "-emitter_" + str(emitter) + "-receiver_" + str(receiver) + "-frequency_" + str(frequency)
+    plt.yticks(new_freqs)
+    plt.xticks(np.arange(0, 0.00002, 0.000001))
+    label = "cycle " + str(cycle) + ", " + str(signal_type) + ", " + str(emitter) + "-" + str(receiver) + ", " + str(frequency)
     plt.title(label, fontsize=25)
-    plt.xlabel('Time')
-    plt.ylabel('Frequency')
-    plt.xlim(19,22)
+    plt.xlabel('Time [s]')
+    plt.ylabel('Frequency [Hz]')
+    plt.xlim(0.19e-5,0.22e-5)
     plt.colorbar()
     plt.savefig('Scalogram.png')
-    return abs(coef)
-
-def scalogram_comparison(cycle: str, frequency: int):
-
-    fig, scalogram = plt.subplots(3, 3)
-
-    scalogram[0,0].plot(scalogram_plot(cycle, 'received', 1, 4, frequency))
-    scalogram[0,1].plot(scalogram_plot(cycle, 'received', 2, 4, frequency))
-    scalogram[0,2].plot(scalogram_plot(cycle, 'received', 3, 4, frequency))
-    scalogram[1,0].plot(scalogram_plot(cycle, 'received', 1, 5, frequency))
-    scalogram[1,1].plot(scalogram_plot(cycle, 'received', 2, 5, frequency))
-    scalogram[1,2].plot(scalogram_plot(cycle, 'received', 3, 5, frequency))
-    scalogram[2,0].plot(scalogram_plot(cycle, 'received', 1, 6, frequency))
-    scalogram[2,1].plot(scalogram_plot(cycle, 'received', 2, 6, frequency))
-    scalogram[2,2].plot(scalogram_plot(cycle, 'received', 3, 6, frequency))
-
-    scalogram[0,0].set_xlim(-19,21)
-    scalogram[0,0].set_ylim(1,30)
-
-    plt.tight_layout()
-    plt.savefig('Scalogram_comp.png')
+    #return fig
 
 
-#scalogram_plot(cycle, signal_type, emitter, receiver, frequency)
-scalogram_comparison(cycle, frequency)
+def wavelet_variance(cycle: str, signal_type: str, emitter: int, receiver:int, frequency: int):
 
+    label = "cycle " + str(cycle) + ", " + str(signal_type) + ", " + str(emitter) + "-" + str(receiver) + ", " + str(frequency)
+
+    y, t, desc = load_data(cycle, signal_type, emitter, receiver, frequency)
+
+    scales = np.arange(1, 31)
+    coef, freqs = pywt.cwt(y, scales, 'morl') #Finding CWT
+
+    scalogram = np.square(abs(coef))
+
+    wavelet_variances = np.zeros(scalogram.shape[0])
+    for i in range(scalogram.shape[0]): 
+        wavelet_variances[i] = np.var(coef[i,:])
+
+    plt.title(label)
+    plt.plot(freqs, wavelet_variances, label=label)
+    plt.xlabel('Frequency [Hz]')
+    plt.ylabel('Wavelet Variance')
+    plt.xlim()
+    plt.ylim()
+    plt.legend(fontsize=5)
+    plt.savefig('WaveletVariance.png')
+
+def wavelet_variance_comp(signal_type: str, emitter: int, receiver:int, frequency: int):
+
+    wavelet_variance('AI', signal_type, emitter, receiver, frequency)
+    wavelet_variance('0', signal_type, emitter, receiver, frequency)
+    wavelet_variance('1', signal_type, emitter, receiver, frequency)
+    wavelet_variance('1000', signal_type, emitter, receiver, frequency)
+    wavelet_variance('10000', signal_type, emitter, receiver, frequency)
+    wavelet_variance('20000', signal_type, emitter, receiver, frequency)
+    wavelet_variance('30000', signal_type, emitter, receiver, frequency)
+    wavelet_variance('40000', signal_type, emitter, receiver, frequency)
+    wavelet_variance('50000', signal_type, emitter, receiver, frequency)
+    wavelet_variance('60000', signal_type, emitter, receiver, frequency)
+    wavelet_variance('70000', signal_type, emitter, receiver, frequency)
+
+
+def PSD(cycle: str, signal_type: str, emitter: int, receiver:int, frequency: int):
+
+    label = "cycle " + str(cycle) + ", " + str(signal_type) + ", " + str(emitter) + "-" + str(receiver) + ", " + str(frequency)
+
+    y, t, desc = load_data(cycle, signal_type, emitter, receiver, frequency)
+
+    coef, freqs = pywt.cwt(y, np.arange(1, 31), 'morl')
+    scalogram = np.square(abs(coef))
+    psd = np.zeros(scalogram.shape[0])
+    for i in range(scalogram.shape[0]):
+        freq = pywt.scale2frequency('morl', i+1)
+        width = freq/2   # assuming wavelet has bandwidth of 2
+        psd[i] = np.sum(scalogram[i,:])/width
+
+    plt.title(label)
+    plt.plot(freqs, psd, label=label)
+    plt.xlim()
+    plt.ylim()
+    plt.xlabel('Frequency [Hz]')
+    plt.ylabel('Power Spectral Density [V^2/Hz]')
+    plt.legend(fontsize=5)
+    plt.savefig('PSD.png')
+
+def PSD_compare(signal_type: str, emitter: int, receiver:int, frequency: int):
+    PSD('AI', signal_type, emitter, receiver, frequency)
+    PSD('0', signal_type, emitter, receiver, frequency)
+    PSD('10000', signal_type, emitter, receiver, frequency)
+    PSD('70000', signal_type, emitter, receiver, frequency)
+
+
+
+###################################################################################
+#plot(cycle, signal_type, emitter, receiver, frequency, x_bounds, y_bounds)
+scalogram_plot(cycle, signal_type, emitter, receiver, frequency)
+#scalogram_plot2(cycle, signal_type, emitter, receiver, frequency)
+#wavelet_variance(cycle, signal_type, emitter, receiver, frequency)
+#PSD(cycle, signal_type, emitter, receiver, frequency)
+#PSD_compare(signal_type, emitter, receiver, frequency)
+#wavelet_variance_comp(signal_type, emitter, receiver, frequency)
+#scalogram_comparison(cycle, frequency)
+###################################################################################
 
 #scalogram_plot('0', 'received', 1, 4, 100)
 #freq_comparison(cycle, emitter, receiver, x_bounds1, y_bounds1)
