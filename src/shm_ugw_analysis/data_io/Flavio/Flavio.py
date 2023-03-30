@@ -68,7 +68,7 @@ def scalogram_plot(cycle: str, signal_type: str, emitter: int, receiver:int, fre
 
     y, t, desc = load_data(cycle, signal_type, emitter, receiver, frequency)
 
-    scales = np.arange(1, 31)
+    scales = np.arange(1, 70)
 
     freqs = pywt.scale2frequency('morl', scales)
     min_freq, max_freq = freqs[0], freqs[-1]
@@ -87,9 +87,35 @@ def scalogram_plot(cycle: str, signal_type: str, emitter: int, receiver:int, fre
     plt.xlabel('Time [s]')
     plt.ylabel('Frequency [Hz]')
     plt.xlim(0.19e-5,0.22e-5)
+
     plt.colorbar()
     plt.savefig('Scalogram.png')
     #return fig
+
+def scalogram_subplots(cycle: str, signal_type: str, emitter: int, receiver:int, frequency: int):
+    cycles = ['0', '1', '1000', '10000', '20000', '30000', 
+               '40000', '50000', '60000', '70000']
+    idx = 0
+    for i in cycles:
+        y, t, desc = load_data(i, signal_type, emitter, receiver, frequency)
+        scales = np.arange(1, 70)
+        freqs = pywt.scale2frequency('morl', scales)
+        min_freq, max_freq = freqs[0], freqs[-1]
+        num_freqs = len(freqs)
+        new_freqs = np.linspace(min_freq, max_freq, num_freqs)
+        coef, freqs = pywt.cwt(y, scales, 'morl') #Finding CWT
+        plt.subplot(2, 5, idx + 1)
+        plt.imshow(abs(coef), extent=[0, 0.00002, max_freq, min_freq], interpolation='bilinear', cmap='jet', aspect='auto', vmax=abs(coef).max(), vmin=-abs(coef).max())
+        plt.yticks(new_freqs)
+        plt.xticks(np.arange(0, 0.00002, 0.000001))
+        label = cycles[idx]
+        plt.title(label, fontsize=15)
+        plt.xlim(0.19e-5,0.22e-5)
+        plt.axis('off')
+        plt.savefig('Scalogram_subplots.png')
+        idx += 1
+
+
 
 
 def wavelet_variance(cycle: str, signal_type: str, emitter: int, receiver:int, frequency: int):
@@ -164,7 +190,8 @@ def PSD_compare(signal_type: str, emitter: int, receiver:int, frequency: int):
 
 ###################################################################################
 #plot(cycle, signal_type, emitter, receiver, frequency, x_bounds, y_bounds)
-scalogram_plot(cycle, signal_type, emitter, receiver, frequency)
+#scalogram_plot(cycle, signal_type, emitter, receiver, frequency)
+scalogram_subplots(cycle, signal_type, emitter, receiver, frequency)
 #scalogram_plot2(cycle, signal_type, emitter, receiver, frequency)
 #wavelet_variance(cycle, signal_type, emitter, receiver, frequency)
 #PSD(cycle, signal_type, emitter, receiver, frequency)
