@@ -13,6 +13,19 @@ import pathlib
 from numpy.fft import fft, fftfreq, fftshift
 from matplotlib.ticker import ScalarFormatter
 
+# TROUBLESHOOTING TO-DO LOG:
+# (1) fft_and_psd_plots function should be turned into a psd_plots only function given that's how we produce our indices
+# (2) verifying normalization equation for x
+# (3) key issue with ax1.___ and ax2.___ implementation, subclasses not loading (check matplotlib implementation in virtual environment)
+# (4) plt.close() implementation incorrect? obtaining error:
+# RuntimeWarning: More than 30 figures have been opened. Figures created through the pyplot interface (`matplotlib.pyplot.figure`) 
+# are retained until explicitly closed and may consume too much memory. (To control this warning, see the rcParam `figure.max_open_warning`). 
+# Consider using `matplotlib.pyplot.close()`. 
+# fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(20, 10)) 
+# Note: default value for RuntimeWarning is for more than 20 figures opened
+# (5) need to treat data to find average of primary and secondary peaks across all frequency bands 
+# (6) need to adjust cross spectral density and coherence mapping so we cycle through frequencies whilst retaining a baseline frequency
+# (7) all paths (e=3 -> r=4) are not sufficiently smooth at primary peak leading to several maxima values being identified
 
 PLOT_DIR = ROOT_DIR.joinpath('plots')
 if not pathlib.Path.exists(PLOT_DIR):
@@ -29,6 +42,8 @@ if not pathlib.Path.exists(PLOT_DIR):
 
 def fft_and_psd_plots(sc: signal_collection, bin_width, emitter, receiver):
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(20, 10))
+    plt.rcParams.update({'figure.max_open_warning': 30})
+    matrix_peaks = np.empty
     for s in sc:
         # Signal Segmentation
         s: Signal
@@ -39,7 +54,7 @@ def fft_and_psd_plots(sc: signal_collection, bin_width, emitter, receiver):
         #print(f'fs={fs}')
         nperseg = int(fs/bin_width)
         # Normalizing
-        ## IS THIS A CORRECT STANDARDIZATION METHOD?
+        ## IS THIS A CORRECT NORMALIZATION METHOD?
         x_std = (x - np.mean(x))/np.std(x)
 
         # Standard FFT Method
@@ -81,8 +96,8 @@ def fft_and_psd_plots(sc: signal_collection, bin_width, emitter, receiver):
         amplitude_envelope = np.abs(analytic_signal)
         '''
         # Plotting
-        ax1.plot(x_fft, y_fft_magnitude_dB, label = f'cycle {s.cycle}')
-        ax2.plot(x_psd_welch, y_psd_welch_magnitude_dB, label = f'cycle {s.cycle}')
+        #ax1.plot(x_fft, y_fft_magnitude_dB, label = f'cycle {s.cycle}')
+        #ax2.plot(x_psd_welch, y_psd_welch_magnitude_dB, label = f'cycle {s.cycle}')
         #ax2.plot(x_psd_welch, amplitude_envelope, label='envelope')
         
         # Peak Finding
@@ -93,6 +108,15 @@ def fft_and_psd_plots(sc: signal_collection, bin_width, emitter, receiver):
         x_psd_welch_peaks = x_psd_welch[psd_welch_peaks_location]
         y_psd_welch_peaks = y_psd_welch_magnitude_dB[psd_welch_peaks_location]
         print(f'Plot "PSD emitter {emitter} receiver {receiver} frequency {s.frequency} kHz" has peaks of magnitude {y_psd_welch_peaks} at locations {psd_welch_peaks_location}')
+        
+        local_peaks = np.array([x_psd_welch_peaks, y_psd_welch_peaks, emitter, receiver, s.frequency])
+        print(local_peaks)
+        np.append(matrix_peaks, local_peaks)
+        print(matrix_peaks)
+
+        #for s.frequency in sc:
+        #    np.append(matrix_peaks, local_peaks)
+        #    print(matrix_peaks)
 
         ax2.plot(x_psd_welch_peaks, y_psd_welch_peaks, "x")
         ax2.plot(border_min, "--", color="gray")
@@ -112,25 +136,26 @@ def fft_and_psd_plots(sc: signal_collection, bin_width, emitter, receiver):
         # Cross PSD
         f, Pxy = csd(x_freq_baseline, x_freq_all_but_baseline)
         f, Cxy = coherence(x_freq_baseline, x_freq_all_but_baseline)
-
-    ax1.grid()  
-    ax1.set_xlabel('Frequency [Hz]')
-    ax1.set_ylabel('Amplitude')
-    ax1.set_xlim(0.5*10**5, 7*10**5)
-    ax1.xaxis.set_major_formatter(ScalarFormatter(useMathText=True))
-    ax1.ticklabel_format(style="sci", axis="x", scilimits=(0,0))
-    ax1.legend()
-    ax1.set_title(f'FFT emitter {emitter} receiver {receiver} frequency {s.frequency} kHz')    
-    ax2.grid()
-    ax2.set_xlabel('Frequency [Hz]')
-    ax2.set_ylabel('Power (W)')
-    ax2.set_xlim(0.5*10**5, 7*10**5)
-    ax2.xaxis.set_major_formatter(ScalarFormatter(useMathText=True))
-    ax2.ticklabel_format(style="sci", axis="x", scilimits=(0,0))
-    ax2.legend()
-    ax2.set_title(f'PSD emitter {emitter} receiver {receiver} frequency {s.frequency} kHz')
-    file_path = os.path.join(PLOT_DIR, f'FFT+PSD_emitter_{emitter}_receiver_{receiver}_frequency_{s.frequency}_kHz.png')
-    plt.savefig(file_path, dpi = 500)
+        ######## used to be <-- indented #######
+        ax1.grid()  
+        ax1.set_xlabel('Frequency [Hz]')
+        ax1.set_ylabel('Amplitude')
+        ax1.set_xlim(0.5*10**5, 7*10**5)
+        ax1.xaxis.set_major_formatter(ScalarFormatter(useMathText=True))
+        ax1.ticklabel_format(style="sci", axis="x", scilimits=(0,0))
+        ax1.legend()
+        ax1.set_title(f'FFT emitter {emitter} receiver {receiver} frequency {s.frequency} kHz')    
+        ax2.grid()
+        ax2.set_xlabel('Frequency [Hz]')
+        ax2.set_ylabel('Power (W)')
+        ax2.set_xlim(0.5*10**5, 7*10**5)
+        ax2.xaxis.set_major_formatter(ScalarFormatter(useMathText=True))
+        ax2.ticklabel_format(style="sci", axis="x", scilimits=(0,0))
+        ax2.legend()
+        ax2.set_title(f'PSD emitter {emitter} receiver {receiver} frequency {s.frequency} kHz')
+        file_path = os.path.join(PLOT_DIR, f'FFT+PSD_emitter_{emitter}_receiver_{receiver}_frequency_{s.frequency}_kHz.png')
+        plt.savefig(file_path, dpi = 500)
+        plt.close(fig)
     return
 
 #cycles=['0', '1', '10000', '20000', '30000', '40000', '50000', '60000', '70000']
