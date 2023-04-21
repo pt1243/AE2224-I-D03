@@ -1,9 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib.axes import Axes
-#from mpl_toolkits.mplot3d import Axes3D
+from mpl_toolkits.mplot3d import Axes3D
 from scipy.ndimage import gaussian_filter1d
-from scipy.signal import savgol_filter, welch, hilbert, find_peaks, find_peaks_cwt, peak_widths
+from scipy.signal import savgol_filter, welch, hilbert, find_peaks, find_peaks_cwt, peak_widths, csd, coherence
 from scipy import ndimage
 import os
 import pandas as pd
@@ -13,6 +12,7 @@ from shm_ugw_analysis.data_io.paths import ROOT_DIR
 import pathlib
 from numpy.fft import fft, fftfreq, fftshift
 from matplotlib.ticker import ScalarFormatter
+
 
 PLOT_DIR = ROOT_DIR.joinpath('plots')
 if not pathlib.Path.exists(PLOT_DIR):
@@ -25,8 +25,10 @@ if not pathlib.Path.exists(PLOT_DIR):
 # between 2 time series vectors x and y computed using Welch cross power spectral
 # density equations: Cxy = abs(Pxy)**2/(Pxx*Pyy)
 
+# IDEALLY SHOULD ONLY BE PSD PLOTTING FUNCTION WITH MAX/MIN & SMOOTHING
+
 def fft_and_psd_plots(sc: signal_collection, bin_width, emitter, receiver):
-    fig, (ax1, ax2) = plt.subplots(1, 2)
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(20, 10))
     for s in sc:
         # Signal Segmentation
         s: Signal
@@ -37,6 +39,7 @@ def fft_and_psd_plots(sc: signal_collection, bin_width, emitter, receiver):
         #print(f'fs={fs}')
         nperseg = int(fs/bin_width)
         # Normalizing
+        ## IS THIS A CORRECT STANDARDIZATION METHOD?
         x_std = (x - np.mean(x))/np.std(x)
 
         # Standard FFT Method
@@ -83,16 +86,14 @@ def fft_and_psd_plots(sc: signal_collection, bin_width, emitter, receiver):
         #ax2.plot(x_psd_welch, amplitude_envelope, label='envelope')
         
         # Peak Finding
+        ## NEED TO ENSURE BORDERS ARE WELL-DEFINED FOR EFFECTIVE PEAK SEARCHING
         border_min = -97
         border_max = -50
         psd_welch_peaks_location, _ = find_peaks(y_psd_welch_magnitude_dB, height=(border_min, border_max))
         x_psd_welch_peaks = x_psd_welch[psd_welch_peaks_location]
         y_psd_welch_peaks = y_psd_welch_magnitude_dB[psd_welch_peaks_location]
-        peaks = np.empty()
-        local_peaks = np.array([x_psd_welch_peaks, y_psd_welch_peaks])
-        peaks = np.append(local_peaks, peaks)
-        print(peaks)
         print(f'Plot "PSD emitter {emitter} receiver {receiver} frequency {s.frequency} kHz" has peaks of magnitude {y_psd_welch_peaks} at locations {psd_welch_peaks_location}')
+
         ax2.plot(x_psd_welch_peaks, y_psd_welch_peaks, "x")
         ax2.plot(border_min, "--", color="gray")
         ax2.plot(border_max, ":", color="gray")
@@ -107,7 +108,11 @@ def fft_and_psd_plots(sc: signal_collection, bin_width, emitter, receiver):
         print(results_full[0])
         ax2.hlines(*results_half[1:], color="C2")
         ax2.hlines(*results_full[1:], color="C3")
-        
+
+        # Cross PSD
+        f, Pxy = csd(x_freq_baseline, x_freq_all_but_baseline)
+        f, Cxy = coherence(x_freq_baseline, x_freq_all_but_baseline)
+
     ax1.grid()  
     ax1.set_xlabel('Frequency [Hz]')
     ax1.set_ylabel('Amplitude')
@@ -126,17 +131,15 @@ def fft_and_psd_plots(sc: signal_collection, bin_width, emitter, receiver):
     ax2.set_title(f'PSD emitter {emitter} receiver {receiver} frequency {s.frequency} kHz')
     file_path = os.path.join(PLOT_DIR, f'FFT+PSD_emitter_{emitter}_receiver_{receiver}_frequency_{s.frequency}_kHz.png')
     plt.savefig(file_path, dpi = 500)
-    #matplotlib.rcParams['figure.max_open_warning'] = 50
-    #plt.close()
-    return 
+    return
 
 #cycles=['0', '1', '10000', '20000', '30000', '40000', '50000', '60000', '70000']
 cycles = ['20000']
 signal_types=['excitation']
 # emitters=list(allowed_emitters)
-emitters = [1]
+emitters = [1, 2, 3]
 # receivers=list(allowed_receivers)
-receivers = [4]
+receivers = [4, 5, 6]
 frequencies=list(allowed_frequencies)
 # frequencies = [100]
 
