@@ -1,6 +1,6 @@
 import pathlib
 from itertools import product
-from typing import Iterable, Iterator, Any
+from typing import Iterable, Iterator, Optional
 
 import numpy as np
 
@@ -19,8 +19,7 @@ class InvalidSignalError(ValueError):
 
 
 class Signal:
-    def __init__(self,
-            cycle: str, signal_type: str, emitter: int, receiver: int, frequency: int) -> None:
+    def __init__(self, cycle: str, signal_type: str, emitter: int, receiver: int, frequency: int) -> None:
         self._cycle: str = cycle
         self._signal_type: str = signal_type
         self._emitter: int = emitter
@@ -44,11 +43,11 @@ class Signal:
 
         self._sample_interval: float = np.around(self._desc[0], decimals=8)
         self._sample_frequency: int = int(np.around(self._desc[1]))
-        
+
         self._length = self._x.size
-        
+
         return
-    
+
     def __repr__(self) -> str:
         return f"Signal('{self._cycle}', '{self._signal_type}', {self._emitter}, {self._receiver}, {self._frequency})"
 
@@ -56,22 +55,22 @@ class Signal:
     def cycle(self) -> str:
         """Cycle name: one of 'AI', '0', '1', ... , '60000', '70000', 'Healthy'."""
         return self._cycle
-    
+
     @property
     def signal_type(self) -> str:
         """If the signal is the excitation signal or the received signal."""
         return self._signal_type
-    
+
     @property
     def emitter(self) -> int:
         """Number of the emitting PZT."""
         return self._emitter
-    
+
     @property
     def receiver(self) -> int:
         """Number of the receiving PZT."""
         return self._emitter
-    
+
     @property
     def frequency(self) -> int:
         """Signal frequency in [kHz]."""
@@ -86,28 +85,28 @@ class Signal:
     def x(self) -> np.ndarray:
         """Oscilloscope readings, cannot be modified: use '.copy_x()' instead."""
         return self._x
-    
+
     @property
     def sample_interval(self) -> float:
         """Time between oscilloscope samples, in [s]."""
         return self._sample_interval
-    
+
     @property
     def sample_frequency(self) -> float:
         """Oscilloscope sample frequency, in [Hz]."""
         return self._sample_frequency
-    
+
     def copy_t(self) -> np.ndarray:
         """Editable copy of the time series data."""
         return np.copy(self._t)
-    
+
     def copy_x(self) -> np.ndarray:
         """Editable copy of the oscilloscope readings."""
         return np.copy(self._x)
-    
+
     def data(self) -> np.ndarray:
         """Returns x and t in one array, of shape (number of samples, 2).
-        
+
         Equivalent indexing:
 
         t = data[:, 0]
@@ -138,7 +137,7 @@ def signal_collection(
         raise InvalidSignalError(f'invalid receiver in {receivers}, must be in {allowed_receivers}')
     if not set(frequencies).issubset(allowed_frequencies):
         raise InvalidSignalError(f'invalid frequency in {frequencies}, must be in {allowed_frequencies}')
-    
+
     for cycle, signal_type, frequency in product(cycles, signal_types, frequencies):
         for emitter in emitters:
             if emitter in (1, 2, 3):
@@ -149,3 +148,20 @@ def signal_collection(
                 for receiver in receivers:
                     if receiver in (1, 2, 3):
                         yield Signal(cycle, signal_type, emitter, receiver, frequency)
+
+
+all_paths = []
+for i in range(1, 4):
+    for j in range(4, 7):
+        all_paths.append((i, j))
+        all_paths.append((j, i))
+
+
+def frequency_collection(
+        cycles: Iterable[str],
+        signal_types: Iterable[str],
+        paths: Optional[Iterable[tuple[int, int]]],
+        frequency: int,
+) -> Iterator[Signal]:
+    if paths is None:
+        return

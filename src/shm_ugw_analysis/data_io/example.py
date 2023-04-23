@@ -7,7 +7,7 @@ from shm_ugw_analysis.data_io.signal import Signal, signal_collection
 
 s = Signal('1000', 'excitation', 1, 4, 120)
 
-# This accesses the excitation signal at cycle 1000, from emitter 1 to receiver 4, at 120 kHz. You can try to change 
+# This accesses the excitation signal at cycle 1000, from emitter 1 to receiver 4, at 120 kHz. You can try to change
 # these numbers and see how it changes. The acceptable values are:
 
 # allowed_cycles = ('AI', '0', '1', '1000', '10000', '20000', '30000', '40000', '50000', '60000', '70000', 'Healthy')
@@ -16,7 +16,7 @@ s = Signal('1000', 'excitation', 1, 4, 120)
 # allowed_receivers = (1, 2, 3, 4, 5, 6)
 # allowed_frequencies = (100, 120, 140, 160, 180)
 
-# Additionally, as we are only considering the paths that go through the damage location, only signals that start at 
+# Additionally, as we are only considering the paths that go through the damage location, only signals that start at
 # one of sensors 1, 2, or 3 and end at 4, 5, or 6 are valid, and vice versa.
 
 # We can then access attributes of the signal as follows. This means that you can pull out only what information you're
@@ -39,7 +39,7 @@ s.t                 # t, the time data
 s.x                 # x(t), the oscilloscope readings
 
 # Note that these are not editable, to prevent you from accidentally modifying the data and unknowingly reusing that
-# modified data later on. If you want to be editing the data, you can get a copy instead. Do note that this is slower 
+# modified data later on. If you want to be editing the data, you can get a copy instead. Do note that this is slower
 # and duplicates the entire array in memory, so you don't want to do this unless you have to.
 
 s.copy_t()          # editable copy of t
@@ -47,7 +47,7 @@ s.copy_x()          # editable copy of x(t)
 
 # Using this method is good for one signal, but once you are trying to iterate over multiple signals you should instead
 # use a 'signal collection'. This is a collection of all the signals that satisfy some criteria. For instance, if you
-# want all the signals from cycles 0 and cycles 1 that are excitation signals and go from sensor 1 to either sensor 4, 
+# want all the signals from cycles 0 and cycles 1 that are excitation signals and go from sensor 1 to either sensor 4,
 # 5, or 6, and have a frequency of either 100 or 120 kHz, you can do the following:
 
 sc = signal_collection(
@@ -63,7 +63,7 @@ sc = signal_collection(
 for s in sc:
     # your data processing here; for example:
     print(s)
-    
+
 # The above code gives:
 # Signal('0', 'excitation', 1, 4, 100)
 # Signal('0', 'excitation', 1, 5, 100)

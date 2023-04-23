@@ -24,8 +24,7 @@ def main():
     else:
         found_version = 0
 
-    # process = True if found_version < NPZ_VERSION else False
-    process = True
+    process = True if found_version < NPZ_VERSION else False
 
     def mat_to_npz(input_file, output_file):
         contents = loadmat(input_file)
@@ -40,8 +39,8 @@ def main():
         desc_array = np.ascontiguousarray([Ts, fs])
 
         stack = np.hstack((wave[3], wave[2]))
-        x = np.ascontiguousarray(stack[:, 0]) # times
-        y = np.ascontiguousarray(stack[:, 1]) # voltage measurements
+        x = np.ascontiguousarray(stack[:, 0])  # times
+        y = np.ascontiguousarray(stack[:, 1])  # voltage measurements
 
         np.savez_compressed(output_file, x=x, y=y, desc=desc_array)
         return
@@ -54,14 +53,14 @@ def main():
 
     if process:
         input_files = [MAT_DIR.joinpath(f) for f in glob.glob('**/*.mat', root_dir=MAT_DIR)]
-        
+
         for file in input_files:
             output_folder, output_filename = output_file(file)
             if not pathlib.Path.exists(output_folder):
                 pathlib.Path.mkdir(output_folder)
-            
+
             mat_to_npz(file, output_filename)
-        
+
         with open(VERSION_FILE, 'w+') as f:
             f.write(str(NPZ_VERSION))
 
