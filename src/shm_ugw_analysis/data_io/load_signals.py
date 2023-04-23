@@ -295,7 +295,7 @@ def path_collection(
     """
     validator.validate_cycles(cycles)
     validator.validate_signal_types(signal_types)
-    validator.validate_emitter_receiver_pair(path)
+    validator.validate_emitter_receiver_pair(*path)
     validator.validate_frequencies(frequencies)
 
     for cycle, signal_type, frequency in product(cycles, signal_types, frequencies):
