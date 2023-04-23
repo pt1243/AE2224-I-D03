@@ -6,8 +6,17 @@ from scipy.signal import savgol_filter, welch, hilbert, find_peaks, find_peaks_c
 from scipy import ndimage
 import os
 import pandas as pd
-from shm_ugw_analysis.data_io.load import load_data, allowed_emitters, allowed_receivers, allowed_frequencies
-from shm_ugw_analysis.data_io.signal import Signal, signal_collection, InvalidSignalError
+from shm_ugw_analysis.data_io.load_signals import (
+    load_data,
+    allowed_emitters,
+    allowed_receivers, 
+    allowed_frequencies, 
+    Signal, 
+    signal_collection,
+    frequency_collection,
+    path_collection, 
+    InvalidSignalError
+)
 from shm_ugw_analysis.data_io.paths import ROOT_DIR
 import pathlib
 from numpy.fft import fft, fftfreq, fftshift
@@ -46,9 +55,9 @@ def find_peak(x_psd_welch, y_psd_welch_magnitude_dB, border_min = -97, border_ma
     x_psd_welch_peaks = x_psd_welch[psd_welch_peaks_location]
     y_psd_welch_peaks = y_psd_welch_magnitude_dB[psd_welch_peaks_location]
     print(f'Plot "PSD emitter {emitter} receiver {receiver} frequency {frequency} kHz" has peaks of magnitude {y_psd_welch_peaks} at locations {psd_welch_peaks_location}')
-    #x_psd_welch_peaks = np.ndarray.flatten(x_psd_welch_peaks)
+    x_psd_welch_peaks = np.ndarray.flatten(x_psd_welch_peaks)
     print(x_psd_welch_peaks)
-    #y_psd_welch_peaks = np.ndarray.flatten(y_psd_welch_peaks)
+    y_psd_welch_peaks = np.ndarray.flatten(y_psd_welch_peaks)
     print(y_psd_welch_peaks)
     local_peaks = np.concatenate([x_psd_welch_peaks, y_psd_welch_peaks])
     print(f'Local Peak Matrix: {local_peaks}')
@@ -61,7 +70,7 @@ def find_peak(x_psd_welch, y_psd_welch_magnitude_dB, border_min = -97, border_ma
     return x_psd_welch_peaks, y_psd_welch_peaks, local_peaks
 
 def psd_plot_peak_finding(sc: signal_collection, bin_width, emitter, receiver):
-    matrix_peaks = np.empty([7, 18])
+    #matrix_peaks = np.empty([7, 18])
     for s in sc:
         # Signal Segmentation
         s: Signal
@@ -84,9 +93,10 @@ def psd_plot_peak_finding(sc: signal_collection, bin_width, emitter, receiver):
         ## NEED TO ENSURE BORDERS ARE WELL-DEFINED FOR EFFECTIVE PEAK SEARCHING
         border_min = -97
         border_max = -50
-        x_psd_welch_peaks, y_psd_welch_peaks, local_peaks = find_peak(x_psd_welch, y_psd_welch_magnitude_dB, border_min, border_max)
-        np.append(matrix_peaks, local_peaks, axis=0)
-        print(f'MATRIX PEAKS: {matrix_peaks}')
+        #x_psd_welch_peaks, y_psd_welch_peaks, local_peaks = find_peak(x_psd_welch, y_psd_welch_magnitude_dB, border_min, border_max)
+        find_peak(x_psd_welch, y_psd_welch_magnitude_dB, border_min, border_max)
+        #np.append(matrix_peaks, local_peaks, axis=0)
+        #print(f'MATRIX PEAKS: {matrix_peaks}')
     return 
 
 
