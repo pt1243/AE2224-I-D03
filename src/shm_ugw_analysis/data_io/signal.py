@@ -1,6 +1,6 @@
 import pathlib
 from itertools import product
-from typing import Iterable, Iterator
+from typing import Iterable, Iterator, Optional
 
 import numpy as np
 
@@ -144,3 +144,20 @@ def signal_collection(
                 for receiver in receivers:
                     if receiver in (1, 2, 3):
                         yield Signal(cycle, signal_type, emitter, receiver, frequency)
+
+
+all_paths = []
+for i in range(1, 4):
+    for j in range(4, 7):
+        all_paths.append((i, j))
+        all_paths.append((j, i))
+
+
+def frequency_collection(
+        cycles: Iterable[str],
+        signal_types: Iterable[str],
+        paths: Optional[Iterable[tuple[int, int]]],
+        frequency: int,
+) -> Iterator[Signal]:
+    if paths is None:
+        return
