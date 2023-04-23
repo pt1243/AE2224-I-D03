@@ -197,8 +197,8 @@ for i in range(1, 4):
 def frequency_collection(
         cycles: Iterable[str],
         signal_types: Iterable[str],
-        paths: Optional[Iterable[tuple[int, int]]],
         frequency: int,
+        paths: Optional[Iterable[tuple[int, int]]],
 ) -> Iterator[Signal]:
     """Iterate over all signal paths for a given frequency.
     
