@@ -1,6 +1,6 @@
 import pathlib
 from itertools import product
-from typing import Iterable, Iterator, Optional, Final
+from typing import Iterable, Iterator, Optional, Final, Sequence
 
 import numpy as np
 
@@ -34,11 +34,11 @@ class _SignalValidator():
             allowed_receivers: Iterable[int],
             allowed_frequencies: Iterable[int]
     ) -> None:
-        self.allowed_cycles = allowed_cycles
-        self.allowed_signal_types = allowed_signal_types
-        self.allowed_emitters = allowed_emitters
-        self.allowed_receivers = allowed_receivers
-        self.allowed_frequencies = allowed_frequencies
+        self.allowed_cycles = set(allowed_cycles)
+        self.allowed_signal_types = set(allowed_signal_types)
+        self.allowed_emitters = set(allowed_emitters)
+        self.allowed_receivers = set(allowed_receivers)
+        self.allowed_frequencies = set(allowed_frequencies)
 
     def validate_emitter_receiver_pair(self, emitter: int, receiver: int) -> None:
         """Validate a receiver and emitter pair.
@@ -56,7 +56,7 @@ class _SignalValidator():
             raise InvalidSignalError(f'invalid pairing of emitter {emitter} and receiver {receiver}')
         return
 
-    def validate_cycles(self, cycles: Iterable[str]) -> None:
+    def validate_cycles(self, cycles: Sequence[str]) -> None:
         if not set(cycles).issubset(self.allowed_cycles):
             raise InvalidSignalError(f'invalid cycle in {cycles}, must be in {allowed_cycles}')
         return
@@ -105,7 +105,7 @@ def load_data(
     
     Note: most use cases should use signal_collection, frequency_collection, or path_collection for iteration instead.
     """
-    validator.validate_all((cycle), (signal_type), (frequency))
+    validator.validate_all((cycle,), (signal_type,), (frequency,))
     validator.validate_emitter_receiver_pair(emitter, receiver)
 
     try:
