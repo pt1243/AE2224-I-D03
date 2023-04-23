@@ -40,10 +40,28 @@ if not pathlib.Path.exists(PLOT_DIR):
 
 # IDEALLY SHOULD ONLY BE PSD PLOTTING FUNCTION WITH MAX/MIN & SMOOTHING
 
-def fft_and_psd_plots(sc: signal_collection, bin_width, emitter, receiver):
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(20, 10))
-    plt.rcParams.update({'figure.max_open_warning': 10})
-    # matrix_peaks = np.empty(0)
+def find_peak(x_psd_welch, y_psd_welch_magnitude_dB, border_min = -97, border_max = -50):
+    ## NEED TO ENSURE BORDERS ARE WELL-DEFINED FOR EFFECTIVE PEAK SEARCHING
+    psd_welch_peaks_location, _ = find_peaks(y_psd_welch_magnitude_dB, height=(border_min, border_max))
+    x_psd_welch_peaks = x_psd_welch[psd_welch_peaks_location]
+    y_psd_welch_peaks = y_psd_welch_magnitude_dB[psd_welch_peaks_location]
+    print(f'Plot "PSD emitter {emitter} receiver {receiver} frequency {frequency} kHz" has peaks of magnitude {y_psd_welch_peaks} at locations {psd_welch_peaks_location}')
+    #x_psd_welch_peaks = np.ndarray.flatten(x_psd_welch_peaks)
+    print(x_psd_welch_peaks)
+    #y_psd_welch_peaks = np.ndarray.flatten(y_psd_welch_peaks)
+    print(y_psd_welch_peaks)
+    local_peaks = np.concatenate([x_psd_welch_peaks, y_psd_welch_peaks])
+    print(f'Local Peak Matrix: {local_peaks}')
+
+    # Peak Width Finding
+    #results_half = peak_widths(y_psd_welch_peaks, x_psd_welch, rel_height=0.5)
+    #results_full = peak_widths(y_psd_welch_peaks, x_psd_welch, rel_height=1)
+    #print(results_half[0])
+    #print(results_full[0])
+    return x_psd_welch_peaks, y_psd_welch_peaks, local_peaks
+
+def psd_plot_peak_finding(sc: signal_collection, bin_width, emitter, receiver):
+    matrix_peaks = np.empty([7, 18])
     for s in sc:
         # Signal Segmentation
         s: Signal
@@ -57,44 +75,43 @@ def fft_and_psd_plots(sc: signal_collection, bin_width, emitter, receiver):
         ## IS THIS A CORRECT NORMALIZATION METHOD?
         x_std = (x - np.mean(x))/np.std(x)
 
-        # Standard FFT Method
-        ## Option 1: Hanning Window
-        '''
-        N = len(x)
-        window = np.hanning(N)
-        x_filtered = x_std * window
-        y_fft = np.fft.fft(x_filtered)/N
-        x_fft = np.fft.fftfreq(N, d=1/fs)
-        y_fft_magnitude = np.abs(y_fft)
-        y_fft_magnitude = gaussian_filter1d(y_fft_magnitude, sigma=10)
-        #y_fft_magnitude_dB = 10*np.log10(y_fft_magnitude)
-        '''
-        ## Option 2: 
-        N = len(x)
-        y_fft = fft(x_std)
-        x_fft = fftfreq(N, d=1/fs)
-        y_fft_magnitude = np.abs(y_fft)
-        y_fft_magnitude = gaussian_filter1d(y_fft_magnitude, sigma=1)
-        y_fft_magnitude_dB = 10*np.log10(y_fft_magnitude)
-        y_fft_magnitude_dB = gaussian_filter1d(y_fft_magnitude_dB, sigma=1)
         # Welch PSD Method
         x_psd_welch, y_psd_welch = welch(x, fs, nperseg=nperseg)
         y_psd_welch_magnitude = np.abs(y_psd_welch)
         y_psd_welch_magnitude_dB = 10*np.log10(y_psd_welch_magnitude)
-        '''
-        x = electrocardiogram()[2000:4000]
-        peaks, _ = find_peaks(x, height=0)
-        plt.plot(x)
-        plt.plot(peaks, x[peaks], "x")
-        plt.plot(np.zeros_like(x), "--", color="gray")
-        plt.show()
-        '''
+        
+        # Peak Finding
+        ## NEED TO ENSURE BORDERS ARE WELL-DEFINED FOR EFFECTIVE PEAK SEARCHING
+        border_min = -97
+        border_max = -50
+        x_psd_welch_peaks, y_psd_welch_peaks, local_peaks = find_peak(x_psd_welch, y_psd_welch_magnitude_dB, border_min, border_max)
+        np.append(matrix_peaks, local_peaks, axis=0)
+        print(f'MATRIX PEAKS: {matrix_peaks}')
+    return 
 
-        '''
-        # Hilber Transform/Envelope
-        analytic_signal = hilbert(y_psd_welch_magnitude)
-        amplitude_envelope = np.abs(analytic_signal)
-        '''
+
+def fft_and_psd_plots(sc: signal_collection, bin_width, emitter, receiver):
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(20, 10))
+    plt.rcParams.update({'figure.max_open_warning': 10})
+    matrix_peaks = np.empty([7, 18])
+    for s in sc:
+        # Signal Segmentation
+        s: Signal
+        x = s.x
+        t = s.t
+        # Parameters
+        fs = s.sample_frequency
+        #print(f'fs={fs}')
+        nperseg = int(fs/bin_width)
+        # Normalizing
+        ## IS THIS A CORRECT NORMALIZATION METHOD?
+        x_std = (x - np.mean(x))/np.std(x)
+
+        # Welch PSD Method
+        x_psd_welch, y_psd_welch = welch(x, fs, nperseg=nperseg)
+        y_psd_welch_magnitude = np.abs(y_psd_welch)
+        y_psd_welch_magnitude_dB = 10*np.log10(y_psd_welch_magnitude)
+        
         # Plotting
         #ax1.plot(x_fft, y_fft_magnitude_dB, label = f'cycle {s.cycle}')
         #ax2.plot(x_psd_welch, y_psd_welch_magnitude_dB, label = f'cycle {s.cycle}')
@@ -104,20 +121,10 @@ def fft_and_psd_plots(sc: signal_collection, bin_width, emitter, receiver):
         ## NEED TO ENSURE BORDERS ARE WELL-DEFINED FOR EFFECTIVE PEAK SEARCHING
         border_min = -97
         border_max = -50
-        psd_welch_peaks_location, _ = find_peaks(y_psd_welch_magnitude_dB, height=(border_min, border_max))
-        x_psd_welch_peaks = x_psd_welch[psd_welch_peaks_location]
-        y_psd_welch_peaks = y_psd_welch_magnitude_dB[psd_welch_peaks_location]
-        print(f'Plot "PSD emitter {emitter} receiver {receiver} frequency {s.frequency} kHz" has peaks of magnitude {y_psd_welch_peaks} at locations {psd_welch_peaks_location}')
+        x_psd_welch_peaks, y_psd_welch_peaks = find_peak(x_psd_welch, y_psd_welch_magnitude_dB, border_min, border_max)
+        #np.append(matrix_peaks, local_peaks, axis=0)
+        print(f'MATRIX PEAKS: {matrix_peaks}')
         
-        local_peaks = np.array(x_psd_welch_peaks, y_psd_welch_peaks, emitter, receiver, s.frequency)
-        print(local_peaks)
-        #matrix_peaks = local_peaks
-        #print(matrix_peaks)
-
-        #for s.frequency in sc:
-        #    np.append(matrix_peaks, local_peaks)
-        #    print(matrix_peaks)
-
         ax2.plot(x_psd_welch_peaks, y_psd_welch_peaks, "x")
         ax2.plot(border_min, "--", color="gray")
         ax2.plot(border_max, ":", color="gray")
@@ -125,13 +132,9 @@ def fft_and_psd_plots(sc: signal_collection, bin_width, emitter, receiver):
         #plt.plot(peaks, x[peaks], "x")
         #results_half = peak_widths(x, peaks, rel_height=0.5)
 
-        # Peak Width Finding
-        results_half = peak_widths(y_psd_welch_peaks, x_psd_welch, rel_height=0.5)
-        results_full = peak_widths(y_psd_welch_peaks, x_psd_welch, rel_height=1)
-        print(results_half[0])
-        print(results_full[0])
-        ax2.hlines(*results_half[1:], color="C2")
-        ax2.hlines(*results_full[1:], color="C3")
+        # Peak Width Plotting
+        #ax2.hlines(*results_half[1:], color="C2")
+        #ax2.hlines(*results_full[1:], color="C3")
 
         fig.show()
 
@@ -165,9 +168,9 @@ def fft_and_psd_plots(sc: signal_collection, bin_width, emitter, receiver):
 cycles = ['20000']
 signal_types=['excitation']
 # emitters=list(allowed_emitters)
-emitters = [1, 2, 3]
+emitters = [1]
 # receivers=list(allowed_receivers)
-receivers = [4, 5, 6]
+receivers = [4]
 frequencies=list(allowed_frequencies)
 # frequencies = [100]
 
@@ -176,7 +179,7 @@ for frequency in frequencies:
         for receiver in receivers:
             try:
                 sc = signal_collection(cycles=tuple(cycles), signal_types=tuple(signal_types), emitters=[emitter], receivers=[receiver], frequencies=[frequency])
-                fft_and_psd_plots(sc, 5000, emitter, receiver)
+                psd_plot_peak_finding(sc, 10000, emitter, receiver)
             except InvalidSignalError as e:
                 continue
 
