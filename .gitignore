@@ -1,6 +1,9 @@
 # Data directory
 data
 
+# Plots
+plots
+
 # VS Code settings
 .vscode/
 
