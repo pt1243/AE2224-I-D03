@@ -2,7 +2,7 @@
 
 import numpy as np
 
-from shm_ugw_analysis.data_io.signal import Signal
+from shm_ugw_analysis.data_io.load_signals import Signal
 
 
 def _k_order_temporal_moment(s: Signal, k: int, t_s: float):

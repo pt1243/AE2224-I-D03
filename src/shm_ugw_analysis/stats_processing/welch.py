@@ -8,7 +8,7 @@ from scipy import ndimage
 import os
 import pandas as pd
 from shm_ugw_analysis.data_io.load import load_data, allowed_emitters, allowed_receivers, allowed_frequencies
-from shm_ugw_analysis.data_io.signal import Signal, signal_collection
+from shm_ugw_analysis.data_io.load_signals import Signal, signal_collection
 from shm_ugw_analysis.data_io.paths import ROOT_DIR
 import pathlib
 from numpy.fft import fft, fftfreq, fftshift

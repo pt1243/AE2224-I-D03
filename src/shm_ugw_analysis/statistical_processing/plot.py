@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 
 from shm_ugw_analysis.statistical_processing.temporal_moments import E, T, D, A_e, S_t_3, S, K_t_4, K
-from shm_ugw_analysis.data_io.signal import signal_collection
+from shm_ugw_analysis.data_io.load_signals import signal_collection
 from shm_ugw_analysis.data_io.paths import ROOT_DIR
 
 sc = signal_collection(

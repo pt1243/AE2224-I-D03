@@ -1,5 +1,5 @@
 # We start by importing the relevant functions:
-from shm_ugw_analysis.data_io.signal import Signal, signal_collection
+from shm_ugw_analysis.data_io.load_signals import Signal, signal_collection
 
 # To access just one specific signal, create an instance of the Signal class. The format is as follows:
 # s = Signal(cycle, signal_type, emitter, receiver, frequency)
