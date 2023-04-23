@@ -7,7 +7,7 @@ from scipy import ndimage
 import os
 import pandas as pd
 from shm_ugw_analysis.data_io.load import load_data, allowed_emitters, allowed_receivers, allowed_frequencies
-from shm_ugw_analysis.data_io.signal import Signal, signal_collection
+from shm_ugw_analysis.data_io.signal import Signal, signal_collection, InvalidSignalError
 from shm_ugw_analysis.data_io.paths import ROOT_DIR
 import pathlib
 from numpy.fft import fft, fftfreq, fftshift
@@ -42,8 +42,8 @@ if not pathlib.Path.exists(PLOT_DIR):
 
 def fft_and_psd_plots(sc: signal_collection, bin_width, emitter, receiver):
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(20, 10))
-    plt.rcParams.update({'figure.max_open_warning': 30})
-    matrix_peaks = np.empty
+    plt.rcParams.update({'figure.max_open_warning': 10})
+    # matrix_peaks = np.empty(0)
     for s in sc:
         # Signal Segmentation
         s: Signal
@@ -111,7 +111,7 @@ def fft_and_psd_plots(sc: signal_collection, bin_width, emitter, receiver):
         
         local_peaks = np.array([x_psd_welch_peaks, y_psd_welch_peaks, emitter, receiver, s.frequency])
         print(local_peaks)
-        np.append(matrix_peaks, local_peaks)
+        matrix_peaks = local_peaks
         print(matrix_peaks)
 
         #for s.frequency in sc:
@@ -133,29 +133,32 @@ def fft_and_psd_plots(sc: signal_collection, bin_width, emitter, receiver):
         ax2.hlines(*results_half[1:], color="C2")
         ax2.hlines(*results_full[1:], color="C3")
 
+        fig.show()
+
         # Cross PSD
-        f, Pxy = csd(x_freq_baseline, x_freq_all_but_baseline)
-        f, Cxy = coherence(x_freq_baseline, x_freq_all_but_baseline)
+        # f, Pxy = csd(x_freq_baseline, x_freq_all_but_baseline)
+        # f, Cxy = coherence(x_freq_baseline, x_freq_all_but_baseline)
         ######## used to be <-- indented #######
-        ax1.grid()  
-        ax1.set_xlabel('Frequency [Hz]')
-        ax1.set_ylabel('Amplitude')
-        ax1.set_xlim(0.5*10**5, 7*10**5)
-        ax1.xaxis.set_major_formatter(ScalarFormatter(useMathText=True))
-        ax1.ticklabel_format(style="sci", axis="x", scilimits=(0,0))
-        ax1.legend()
-        ax1.set_title(f'FFT emitter {emitter} receiver {receiver} frequency {s.frequency} kHz')    
-        ax2.grid()
-        ax2.set_xlabel('Frequency [Hz]')
-        ax2.set_ylabel('Power (W)')
-        ax2.set_xlim(0.5*10**5, 7*10**5)
-        ax2.xaxis.set_major_formatter(ScalarFormatter(useMathText=True))
-        ax2.ticklabel_format(style="sci", axis="x", scilimits=(0,0))
-        ax2.legend()
-        ax2.set_title(f'PSD emitter {emitter} receiver {receiver} frequency {s.frequency} kHz')
-        file_path = os.path.join(PLOT_DIR, f'FFT+PSD_emitter_{emitter}_receiver_{receiver}_frequency_{s.frequency}_kHz.png')
-        plt.savefig(file_path, dpi = 500)
-        plt.close(fig)
+    ax1.grid()  
+    ax1.set_xlabel('Frequency [Hz]')
+    ax1.set_ylabel('Amplitude')
+    ax1.set_xlim(0.5*10**5, 7*10**5)
+    ax1.xaxis.set_major_formatter(ScalarFormatter(useMathText=True))
+    ax1.ticklabel_format(style="sci", axis="x", scilimits=(0,0))
+    ax1.legend()
+    ax1.set_title(f'FFT emitter {emitter} receiver {receiver} frequency {s.frequency} kHz')    
+    ax2.grid()
+    ax2.set_xlabel('Frequency [Hz]')
+    ax2.set_ylabel('Power (W)')
+    ax2.set_xlim(0.5*10**5, 7*10**5)
+    ax2.xaxis.set_major_formatter(ScalarFormatter(useMathText=True))
+    ax2.ticklabel_format(style="sci", axis="x", scilimits=(0,0))
+    ax2.legend()
+    ax2.set_title(f'PSD emitter {emitter} receiver {receiver} frequency {s.frequency} kHz')
+    file_path = os.path.join(PLOT_DIR, f'FFT+PSD_emitter_{emitter}_receiver_{receiver}_frequency_{s.frequency}_kHz.png')
+    fig.savefig(file_path, dpi=500)
+    # plt.savefig(file_path, dpi = 500)
+    fig.clear()
     return
 
 #cycles=['0', '1', '10000', '20000', '30000', '40000', '50000', '60000', '70000']
@@ -174,7 +177,7 @@ for frequency in frequencies:
             try:
                 sc = signal_collection(cycles=tuple(cycles), signal_types=tuple(signal_types), emitters=[emitter], receivers=[receiver], frequencies=[frequency])
                 fft_and_psd_plots(sc, 5000, emitter, receiver)
-            except Exception:
+            except InvalidSignalError as e:
                 continue
 
 # for s in sc:

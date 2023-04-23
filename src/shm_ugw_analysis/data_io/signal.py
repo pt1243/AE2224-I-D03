@@ -14,6 +14,10 @@ from shm_ugw_analysis.data_io.load import (
 )
 
 
+class InvalidSignalError(ValueError):
+    pass
+
+
 class Signal:
     def __init__(self,
             cycle: str, signal_type: str, emitter: int, receiver: int, frequency: int) -> None:
@@ -125,15 +129,15 @@ def signal_collection(
         frequencies: Iterable[int]
 ) -> Iterator[Signal]:
     if not set(cycles).issubset(allowed_cycles):
-        raise ValueError(f'invalid cycle in {cycles}, must be in {allowed_cycles}')
+        raise InvalidSignalError(f'invalid cycle in {cycles}, must be in {allowed_cycles}')
     if not set(signal_types).issubset(allowed_signal_types):
-        raise ValueError(f'invalid signal type in {signal_types}, must be in {allowed_signal_types}')
+        raise InvalidSignalError(f'invalid signal type in {signal_types}, must be in {allowed_signal_types}')
     if not set(emitters).issubset(allowed_emitters):
-        raise ValueError(f'invalid emitter in {emitters}, must be in {allowed_emitters}')
+        raise InvalidSignalError(f'invalid emitter in {emitters}, must be in {allowed_emitters}')
     if not set(receivers).issubset(allowed_receivers):
-        raise ValueError(f'invalid receiver in {receivers}, must be in {allowed_receivers}')
+        raise InvalidSignalError(f'invalid receiver in {receivers}, must be in {allowed_receivers}')
     if not set(frequencies).issubset(allowed_frequencies):
-        raise ValueError(f'invalid frequency in {frequencies}, must be in {allowed_frequencies}')
+        raise InvalidSignalError(f'invalid frequency in {frequencies}, must be in {allowed_frequencies}')
     
     for cycle, signal_type, frequency in product(cycles, signal_types, frequencies):
         for emitter in emitters:
