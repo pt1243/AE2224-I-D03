@@ -120,6 +120,47 @@ class Signal:
         return np.vstack((self._t, self._x.T)).T
 
 
+def _validate_emitter_receiver_pair(emitter: int, receiver: int) -> None:
+    """Validate a receiver and emitter pair.
+    
+    Raises InvalidSignalError if an invalid combination is found.
+    """
+    if emitter not in allowed_emitters:
+        raise InvalidSignalError(f'invalid emitter {emitter}, must be one of {allowed_emitters}')
+    if receiver not in allowed_receivers:
+        raise InvalidSignalError(f'invalid receiver {receiver}, must be one of {allowed_receivers}')
+    top, bottom = (1, 2, 3), (4, 5, 6)
+    if emitter in top and receiver in top:
+        raise InvalidSignalError(f'invalid pairing of emitter {emitter} and receiver {receiver}')
+    if emitter in bottom and receiver in bottom:
+        raise InvalidSignalError(f'invalid pairing of emitter {emitter} and receiver {receiver}')
+    return
+
+
+def _validate_cycles(cycles: Iterable[str]) -> None:
+    if not set(cycles).issubset(allowed_cycles):
+        raise InvalidSignalError(f'invalid cycle in {cycles}, must be in {allowed_cycles}')
+    return
+
+
+def _validate_signal_types(signal_types: Iterable[str]) -> None:
+    if not set(signal_types).issubset(allowed_signal_types):
+        raise InvalidSignalError(f'invalid signal type in {signal_types}, must be in {allowed_signal_types}')
+    return
+
+
+def _validate_frequencies(frequencies: Iterable[int]) -> None:
+    if not set(frequencies).issubset(allowed_frequencies):
+        raise InvalidSignalError(f'invalid frequency in {frequencies}, must be in {allowed_frequencies}')
+    return
+
+
+def _validate_transducer_numbers(transducer_numbers: Iterable[int]) -> None:
+    if not set(transducer_numbers).issubset(allowed_emitters):
+        raise InvalidSignalError(f'invalid transducer number in {transducer_numbers}, must be in {allowed_emitters}')
+    return
+
+
 def signal_collection(
         cycles: Iterable[str],
         signal_types: Iterable[str],
@@ -127,16 +168,12 @@ def signal_collection(
         receivers: Iterable[int],
         frequencies: Iterable[int]
 ) -> Iterator[Signal]:
-    if not set(cycles).issubset(allowed_cycles):
-        raise InvalidSignalError(f'invalid cycle in {cycles}, must be in {allowed_cycles}')
-    if not set(signal_types).issubset(allowed_signal_types):
-        raise InvalidSignalError(f'invalid signal type in {signal_types}, must be in {allowed_signal_types}')
-    if not set(emitters).issubset(allowed_emitters):
-        raise InvalidSignalError(f'invalid emitter in {emitters}, must be in {allowed_emitters}')
-    if not set(receivers).issubset(allowed_receivers):
-        raise InvalidSignalError(f'invalid receiver in {receivers}, must be in {allowed_receivers}')
-    if not set(frequencies).issubset(allowed_frequencies):
-        raise InvalidSignalError(f'invalid frequency in {frequencies}, must be in {allowed_frequencies}')
+    """Iterate over all signals that are the product of the arguments."""
+    _validate_cycles(cycles)
+    _validate_signal_types(signal_types)
+    _validate_transducer_numbers(emitters)
+    _validate_transducer_numbers(receivers)
+    _validate_frequencies(frequencies)
 
     for cycle, signal_type, frequency in product(cycles, signal_types, frequencies):
         for emitter in emitters:
@@ -163,5 +200,39 @@ def frequency_collection(
         paths: Optional[Iterable[tuple[int, int]]],
         frequency: int,
 ) -> Iterator[Signal]:
-    if paths is None:
-        return
+    """Iterate over all signal paths for a given frequency.
+    
+    Paths should be a list of emitter/receiver tuples, eg. [(1, 4), (1, 5), (1, 6)], or left as none to use all paths
+    by default.
+    """
+    _validate_cycles(cycles)
+    _validate_signal_types(signal_types)
+    _validate_frequencies((frequency))
+    if paths is not None:
+        for (emitter, receiver) in paths:
+            _validate_emitter_receiver_pair(emitter, receiver)
+    else:
+        paths = all_paths
+
+    for cycle, signal_type in product(cycles, signal_types):
+        for path in paths:
+            yield Signal(cycle, signal_type, *path, frequency)
+
+
+def path_collection(
+        cycles: Iterable[str],
+        signal_types: Iterable[str],
+        path: tuple[int, int],
+        frequencies: Iterable[int],
+) -> Iterator[Signal]:
+    """Iterate over all frequencies for a given signal path.
+    
+    The signal path is given as a tuple of the emitter and receiver, eg. (1, 4).
+    """
+    _validate_cycles(cycles)
+    _validate_signal_types(signal_types)
+    _validate_emitter_receiver_pair(path)
+    _validate_frequencies(frequencies)
+
+    for cycle, signal_type, frequency in product(cycles, signal_types, frequencies):
+        yield Signal(cycle, signal_type, *path, frequency)
