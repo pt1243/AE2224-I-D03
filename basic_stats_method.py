@@ -14,7 +14,7 @@ def basic_stats_summary(y):
     K_factor = peak_amp * rms
     clearance_factor = (peak_amp) / (mean_square)
     impulse_factor = (peak_amp) / (mean_square)
-    shape_factor = (rms)/(np.mean(abs(y)),axis)
+    shape_factor = (rms)/(np.mean(abs(y)))
     return mean, mean_square, rms, std, var, peak_amp, crest_factor, K_factor, clearance_factor, impulse_factor, shape_factor
 
 
