@@ -18,11 +18,11 @@ from shm_ugw_analysis.stats_processing.welch_psd_peaks import plot_signal_collec
 # plot_psd_and_peaks(s, 4000)
 
 sc = signal_collection(
-    cycles=allowed_cycles,
+    cycles=('0', '1', '1000', '10000', '20000', '30000', ),
     signal_types=('received',),
     emitters=(1,),
     receivers=(4,),
-    frequencies=(100,),
+    frequencies=(180,),
 )
 
 plot_signal_collection_psd_peaks(sc, bin_width=2000, file_label='changing_cycles')
