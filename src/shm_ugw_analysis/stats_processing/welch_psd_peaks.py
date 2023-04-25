@@ -1,26 +1,23 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
-from scipy.ndimage import gaussian_filter1d
-from scipy.signal import savgol_filter, welch, hilbert, find_peaks, find_peaks_cwt, peak_widths, csd, coherence
-from scipy import ndimage
-import os
-import pandas as pd
-from shm_ugw_analysis.data_io.load_signals import (
+from matplotlib.axes import Axes
+from scipy.signal import welch, find_peaks
+from ..data_io.load_signals import (
     load_data,
     allowed_emitters,
     allowed_receivers, 
     allowed_frequencies, 
+    allowed_cycles,
     Signal, 
     signal_collection,
     frequency_collection,
     path_collection, 
     InvalidSignalError
 )
-from shm_ugw_analysis.data_io.paths import ROOT_DIR
+from ..data_io.paths import ROOT_DIR
 import pathlib
-from numpy.fft import fft, fftfreq, fftshift
 from matplotlib.ticker import ScalarFormatter
+from typing import Optional, Iterable, Sequence
 
 # TROUBLESHOOTING TO-DO LOG:
 # (1) fft_and_psd_plots function should be turned into a psd_plots only function given that's how we produce our indices
@@ -50,11 +47,12 @@ if not pathlib.Path.exists(PLOT_DIR):
 # IDEALLY SHOULD ONLY BE PSD PLOTTING FUNCTION WITH MAX/MIN & SMOOTHING
 
 def find_peak(x_psd_welch, y_psd_welch_magnitude_dB, border_min = -97, border_max = -50):
+    print('here')
     ## NEED TO ENSURE BORDERS ARE WELL-DEFINED FOR EFFECTIVE PEAK SEARCHING
     psd_welch_peaks_location, _ = find_peaks(y_psd_welch_magnitude_dB, height=(border_min, border_max))
     x_psd_welch_peaks = x_psd_welch[psd_welch_peaks_location]
     y_psd_welch_peaks = y_psd_welch_magnitude_dB[psd_welch_peaks_location]
-    print(f'Plot "PSD emitter {emitter} receiver {receiver} frequency {frequency} kHz" has peaks of magnitude {y_psd_welch_peaks} at locations {psd_welch_peaks_location}')
+    print(f'Peaks of magnitude {y_psd_welch_peaks} at locations {psd_welch_peaks_location}')
     x_psd_welch_peaks = np.ndarray.flatten(x_psd_welch_peaks)
     print(x_psd_welch_peaks)
     y_psd_welch_peaks = np.ndarray.flatten(y_psd_welch_peaks)
@@ -71,7 +69,9 @@ def find_peak(x_psd_welch, y_psd_welch_magnitude_dB, border_min = -97, border_ma
 
 def psd_plot_peak_finding(sc: signal_collection, bin_width, emitter, receiver):
     #matrix_peaks = np.empty([7, 18])
+    print('here outside loop')
     for s in sc:
+        print(f'here inside loop, {s = }')
         # Signal Segmentation
         s: Signal
         x = s.x
@@ -168,32 +168,105 @@ def fft_and_psd_plots(sc: signal_collection, bin_width, emitter, receiver):
     ax2.ticklabel_format(style="sci", axis="x", scilimits=(0,0))
     ax2.legend()
     ax2.set_title(f'PSD emitter {emitter} receiver {receiver} frequency {s.frequency} kHz')
-    file_path = os.path.join(PLOT_DIR, f'FFT+PSD_emitter_{emitter}_receiver_{receiver}_frequency_{s.frequency}_kHz.png')
-    plt.savefig(file_path, dpi=500)
+    file_path = PLOT_DIR.joinpath(f'FFT+PSD_emitter_{emitter}_receiver_{receiver}_frequency_{s.frequency}_kHz.png')
+    fig.savefig(file_path, dpi=500)
     # plt.savefig(file_path, dpi = 500)
     fig.clear()
-    return
 
-#cycles=['0', '1', '10000', '20000', '30000', '40000', '50000', '60000', '70000']
-cycles = ['20000']
-signal_types=['excitation']
-# emitters=list(allowed_emitters)
-emitters = [1]
-# receivers=list(allowed_receivers)
-receivers = [4]
-frequencies=list(allowed_frequencies)
-# frequencies = [100]
+def psd_welch(s: Signal, bin_width: int | float):
+    fs = s.sample_frequency
+    nperseg = int(fs/bin_width)
 
-for frequency in frequencies:
-    for emitter in emitters:
-        for receiver in receivers:
-            try:
-                sc = signal_collection(cycles=tuple(cycles), signal_types=tuple(signal_types), emitters=[emitter], receivers=[receiver], frequencies=[frequency])
-                psd_plot_peak_finding(sc, 10000, emitter, receiver)
-            except InvalidSignalError as e:
-                continue
+    x_psd_welch: np.ndarray
+    y_psd_welch: np.ndarray
 
-# for s in sc:
-#     fft_and_psd_plots(s, 5000)
+    x_psd_welch, y_psd_welch = welch(s.x, fs, nperseg=nperseg)
+    return np.array((x_psd_welch, y_psd_welch))
 
-# fft_and_psd_plots(Signal('1000', 'received', 1, 4, 100), 5000)
+
+def find_psd_peaks(
+        s: Signal,
+        psd: np.ndarray,
+        lower_bound: int = -97,
+        upper_bound: int = -50,
+        distance: Optional[int] = None,
+) -> np.ndarray:
+    """Calculate the peak locations of the Welch PSD for one specific signal.
+    
+    Returns a (2, N) ndarray, with N being the number of peaks found, the first subarray being the peak frequencies,
+    and the second subarray being the peak magnitudes in dB.
+    """
+
+    x_psd_welch: np.ndarray
+    y_psd_welch: np.ndarray
+    psd_welch_peaks_location: np.ndarray
+
+    x_psd_welch, y_psd_welch = psd[0], psd[1]
+    y_psd_welch_magnitude: np.ndarray = np.abs(y_psd_welch)
+    y_psd_welch_magnitude_dB: np.ndarray = 10*np.log10(y_psd_welch_magnitude)
+
+    psd_welch_peaks_location, _ = find_peaks(y_psd_welch_magnitude_dB, height=(lower_bound, upper_bound), distance=distance)
+    x_psd_welch_peaks: np.ndarray = x_psd_welch[psd_welch_peaks_location].flatten()
+    y_psd_welch_peaks: np.ndarray = y_psd_welch_magnitude_dB[psd_welch_peaks_location].flatten()
+    peaks_array = np.array((psd_welch_peaks_location, y_psd_welch_peaks))
+    print(f'{s} has peaks of magnitude {y_psd_welch_peaks} at locations {psd_welch_peaks_location}')
+
+    return peaks_array
+
+
+def create_and_save_fig(s: Signal, peaks_array: np.ndarray, psd: np.ndarray) -> None:
+    """Plot and save the Welch PSD peaks for one signal."""
+    PLOT_DIR = ROOT_DIR.joinpath('plots')
+    if not pathlib.Path.exists(PLOT_DIR):
+        pathlib.Path.mkdir(PLOT_DIR)
+    print(s)
+    fig, ax = plt.subplots(1, 1, figsize=(18, 10))
+    ax.plot(psd[0], 10*np.log10(psd[1]))
+    ax.plot(peaks_array[0], peaks_array[1], "x")
+    ax.grid()
+    ax.set_xlabel('Frequency [Hz]')
+    ax.set_ylabel('Power [dBW]')
+    ax.set_xlim(0.5*10**5, 7*10**5)
+    ax.xaxis.set_major_formatter(ScalarFormatter(useMathText=True))
+    ax.ticklabel_format(style="sci", axis="x", scilimits=(0,0))
+    ax.set_title(f'PSD, cycle {s.cycle}, path {s.emitter}-{s.receiver}, {s.frequency} kHz')
+    file_path = PLOT_DIR.joinpath(f'FFT+PSD_emitter_{s.emitter}_receiver_{s.receiver}_frequency_{s.frequency}_kHz.png')
+    fig.savefig(file_path, dpi=500, bbox_inches='tight')
+    fig.clear()
+
+def plot_psd_and_peaks(s: Signal, bin_width: int | float, lower_bound: int = -97, upper_bound: int = -50, distance: Optional[int] = None):
+    x_psd_welch: np.ndarray
+    y_psd_welch: np.ndarray
+    psd_welch_peaks_location: np.ndarray
+
+    fs = s.sample_frequency
+    nperseg = int(fs/bin_width)
+
+    x_psd_welch, y_psd_welch = welch(s.x, fs, nperseg=nperseg)
+
+    y_psd_welch_magnitude: np.ndarray = np.abs(y_psd_welch)
+    y_psd_welch_magnitude_dB: np.ndarray = 10*np.log10(y_psd_welch_magnitude)
+
+    psd_welch_peaks_location, _ = find_peaks(y_psd_welch_magnitude_dB, height=(lower_bound, upper_bound), distance=distance)
+    x_psd_welch_peaks: np.ndarray = x_psd_welch[psd_welch_peaks_location].flatten()
+    y_psd_welch_peaks: np.ndarray = y_psd_welch_magnitude_dB[psd_welch_peaks_location].flatten()
+    peaks_array = np.array((psd_welch_peaks_location, y_psd_welch_peaks))
+    print(f'{s} has peaks of magnitude {y_psd_welch_peaks} at locations {psd_welch_peaks_location}')
+
+    PLOT_DIR = ROOT_DIR.joinpath('plots')
+    if not pathlib.Path.exists(PLOT_DIR):
+        pathlib.Path.mkdir(PLOT_DIR)
+    fig, ax = plt.subplots(1, 1, figsize=(18, 10))
+    ax.plot(x_psd_welch, y_psd_welch_magnitude_dB)
+    ax.plot(peaks_array[0], peaks_array[1], "x")
+    ax.grid()
+    ax.set_xlabel('Frequency [Hz]')
+    ax.set_ylabel('Power [dBW]')
+    ax.set_xlim(0.5*10**5, 7*10**5)
+    ax.xaxis.set_major_formatter(ScalarFormatter(useMathText=True))
+    ax.ticklabel_format(style="sci", axis="x", scilimits=(0,0))
+    cycle, emitter, receiver, frequency = s.cycle, s.emitter, s.receiver, s.frequency
+    ax.set_title(f'PSD, cycle {cycle}, path {emitter}-{receiver}, {frequency} kHz')
+    file_path = PLOT_DIR.joinpath(f'FFT+PSD_emitter_{emitter}_receiver_{receiver}_frequency_{frequency}_kHz.png')
+    fig.savefig(file_path, dpi=500, bbox_inches='tight')
+    fig.clear()

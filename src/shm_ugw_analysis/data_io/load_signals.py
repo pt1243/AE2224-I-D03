@@ -1,10 +1,10 @@
 import pathlib
 from itertools import product
-from typing import Iterable, Iterator, Optional, Final, Sequence
+from typing import Iterable, Iterator, Optional, Final
 
 import numpy as np
 
-from shm_ugw_analysis.data_io.paths import NPZ_DIR
+from .paths import NPZ_DIR
 
 
 allowed_cycles: Final = ('AI', '0', '1', '1000', '10000', '20000', '30000', '40000', '50000', '60000', '70000', 'Healthy')
@@ -28,17 +28,25 @@ class InvalidSignalError(ValueError):
 
 class _SignalValidator():
     def __init__(self,
-            allowed_cycles: Iterable[str],
-            allowed_signal_types: Iterable[str],
-            allowed_emitters: Iterable[int],
-            allowed_receivers: Iterable[int],
-            allowed_frequencies: Iterable[int]
+            allowed_cycles: Optional[Iterable[str]],
+            allowed_signal_types: Optional[Iterable[str]],
+            allowed_emitters: Optional[Iterable[int]],
+            allowed_receivers: Optional[Iterable[int]],
+            allowed_frequencies: Optional[Iterable[int]]
     ) -> None:
         self.allowed_cycles = set(allowed_cycles)
         self.allowed_signal_types = set(allowed_signal_types)
         self.allowed_emitters = set(allowed_emitters)
         self.allowed_receivers = set(allowed_receivers)
         self.allowed_frequencies = set(allowed_frequencies)
+
+    @classmethod
+    def from_defaults(cls):
+        return cls(allowed_cycles, allowed_signal_types, allowed_emitters, allowed_receivers, allowed_frequencies)
+    
+    def __repr__(self) -> str:
+        return f'{self.__class__.__name__}({self.allowed_cycles}, {self.allowed_signal_types}, ' \
+        f'{self.allowed_emitters}, {self.allowed_receivers}, {self.allowed_frequencies})'
 
     def validate_emitter_receiver_pair(self, emitter: int, receiver: int) -> None:
         """Validate a receiver and emitter pair.
@@ -56,7 +64,7 @@ class _SignalValidator():
             raise InvalidSignalError(f'invalid pairing of emitter {emitter} and receiver {receiver}')
         return
 
-    def validate_cycles(self, cycles: Sequence[str]) -> None:
+    def validate_cycles(self, cycles: Iterable[str]) -> None:
         if not set(cycles).issubset(self.allowed_cycles):
             raise InvalidSignalError(f'invalid cycle in {cycles}, must be in {allowed_cycles}')
         return
@@ -82,13 +90,7 @@ class _SignalValidator():
         self.validate_frequencies(frequencies)
 
 
-validator = _SignalValidator(
-    allowed_cycles,
-    allowed_signal_types,
-    allowed_emitters,
-    allowed_receivers,
-    allowed_frequencies
-)
+validator = _SignalValidator.from_defaults()
 
 
 def _load_npz(filename: pathlib.Path) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
