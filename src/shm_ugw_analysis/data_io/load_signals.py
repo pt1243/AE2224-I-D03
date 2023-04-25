@@ -183,7 +183,7 @@ class Signal:
     @property
     def receiver(self) -> int:
         """Number of the receiving PZT."""
-        return self._emitter
+        return self._receiver
 
     @property
     def frequency(self) -> int:
