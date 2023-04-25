@@ -82,7 +82,7 @@ def plot_signal_collection_psd_peaks(sc: Iterable[Signal], bin_width: int | floa
     PLOT_DIR = ROOT_DIR.joinpath('plots')
     if not pathlib.Path.exists(PLOT_DIR):
         pathlib.Path.mkdir(PLOT_DIR)
-    fig, ax = plt.subplots(1, 1, figsize=(12, 10))
+    fig, ax = plt.subplots(1, 1, figsize=(50, 10))
     for s in sc:
         print(f'Now plotting {s}')
         psd = psd_welch(s, bin_width)  # compute the PSD
@@ -90,10 +90,12 @@ def plot_signal_collection_psd_peaks(sc: Iterable[Signal], bin_width: int | floa
         ax.plot(psd[0], 10*np.log10(psd[1]),
                 label=f'Cycle {s.cycle}, {s.signal_type} {s.emitter}-{s.receiver}, {s.frequency} kHz')  # plot the PSD
         ax.plot(peaks_array[0], peaks_array[1], "x")  # mark the peaks
+    print(f'FINAL FREQUENCY: {psd[0][-1]}')
     ax.grid()
     ax.set_xlabel('Frequency [Hz]')
     ax.set_ylabel('Power [dBW]')
-    ax.set_xlim(0.5*10**5, 10*10**5)
+    ax.set_xlim(0, 2500000)
+    #ax.set_xlim(0.5*10**5, 10*10**5)
     ax.xaxis.set_major_formatter(ScalarFormatter(useMathText=True))
     ax.ticklabel_format(style="sci", axis="x", scilimits=(0,0))
     ax.set_title(f'PSD with peaks')
@@ -102,7 +104,8 @@ def plot_signal_collection_psd_peaks(sc: Iterable[Signal], bin_width: int | floa
     file_path = PLOT_DIR.joinpath(filename)
     fig.savefig(file_path, dpi=500, bbox_inches='tight')
     print(f'Figure saved to {PLOT_DIR.joinpath(filename)}')
-    fig.clear()
+    plt.show()
+    plt.close()
     return
 
 
@@ -168,3 +171,52 @@ def plot_coherence(sc: Iterable[Signal], bin_width: float | int):
     plt.savefig(filepath, dpi=500)
     print(f'Coherence plot saved to {PLOT_DIR.joinpath(filepath)}')
     return
+
+def plot_coherence_3d(sc: Iterable[Signal], bin_width: float | int):
+    """Plot the coherence for a collection of signals."""
+    ax = plt.axes(projection='3d')
+    for s in sc:
+        coherence_arr = calculate_coherence(s, bin_width=bin_width)
+        smoothed = gaussian_filter1d(coherence_arr[1], sigma=1)
+        
+        X = coherence_arr[0]*2500000*2
+        Y = smoothed
+        Z = np.ones((X.size, Y.size)) * int(s.cycle)
+        ax.plot_wireframe(X, Y, Z)
+        #ax.plot_surface(X, Y, Z)
+    
+    ax.legend()
+    #ax.grid()
+    ax.set_xlabel('freq bands')
+    ax.set_ylabel('coherence')
+    ax.view_init(vertical_axis = 'y')
+    # elev = -52, azim = 90, roll = 45
+    #ax.azim = 90
+    #ax.elev = -52
+    ax.set_zlabel('cycles')
+    # ax.set_yscale('log')
+    filepath = PLOT_DIR.joinpath('coherence.png')
+    plt.savefig(filepath, dpi=500)
+    plt.show()
+    print(f'Coherence plot saved to {PLOT_DIR.joinpath(filepath)}')
+    return
+
+'''
+def coherence(x_freq_baseline, x_freq_all_but_baseline):
+    f, Cxy = coherence(x_freq_baseline, x_freq_all_but_baseline)
+    return np.array([f, Cxy])
+x_psd_welch, y_psd_welch = welch(s.x, fs, nperseg=nperseg)
+
+psd_welch()
+
+for i in allowed_cycles and not allowed_cycles = '0':
+    coherence_array = coherence(y_psd_welch_magnitude_dB[0], y_psd_welch_magnitude_dB[i])
+
+ax = plt.axes(projection='3d')
+X = coherence_array[0]
+Y = coherence_array[1]
+Z: X, Y at different cycles 
+ax.plot_surface(X, Y, Z, rstride=1, cstride=1,
+                cmap='viridis', edgecolor='none')
+ax.set_title('surface')
+'''
