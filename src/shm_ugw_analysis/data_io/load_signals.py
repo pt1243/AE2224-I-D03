@@ -13,6 +13,8 @@ allowed_emitters: Final = (1, 2, 3, 4, 5, 6)
 allowed_receivers: Final = allowed_emitters
 allowed_frequencies: Final = (100, 120, 140, 160, 180)
 
+relevant_cycles: Final = ('0', '1', '1000', '10000', '20000', '30000', '40000', '50000', '60000', '70000') 
+
 _all_paths = []
 for i in range(1, 4):
     for j in range(4, 7):
