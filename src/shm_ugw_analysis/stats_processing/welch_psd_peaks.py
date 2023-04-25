@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
-from scipy.signal import welch, find_peaks
+from scipy.signal import welch, find_peaks, coherence
 from ..data_io.load_signals import (
     load_data,
     allowed_emitters,
@@ -109,6 +109,7 @@ def plot_signal_psd_peaks(
         upper_bound: int = -50,
         distance: Optional[int] = None,
 ):
+    """Plot a specific signal's PSD onto a given figure."""
     x_psd_welch: np.ndarray
     y_psd_welch: np.ndarray
     psd_welch_peaks_location: np.ndarray
@@ -142,3 +143,10 @@ def get_baseline(s: Signal):
     return Signal('0', s.signal_type, s.emitter, s.receiver, s.frequency)
 
 
+def calculate_coherence(s: Signal, bin_width: float | int, **kwargs):
+    """Calculate the coherence between a given signal and baseline."""
+    baseline = get_baseline(s)
+    baseline_psd = psd_welch(baseline, bin_width=bin_width)
+    s_psd = psd_welch(s, bin_width=bin_width)
+    coherence_arr = coherence(s_psd[1], baseline_psd[1], **kwargs)
+    return coherence_arr
