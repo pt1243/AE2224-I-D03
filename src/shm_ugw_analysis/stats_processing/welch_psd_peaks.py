@@ -31,6 +31,7 @@ from typing import Optional, Iterable, Sequence
 
 
 def psd_welch(s: Signal, bin_width: int | float):
+    """Calculate the PSD for a single signal."""
     fs = s.sample_frequency
     nperseg = int(fs/bin_width)
 
@@ -137,4 +138,7 @@ def plot_signal_psd_peaks(
 
 
 def get_baseline(s: Signal):
+    """Gets the baseline (cycle 0) for a given signal."""
     return Signal('0', s.signal_type, s.emitter, s.receiver, s.frequency)
+
+
