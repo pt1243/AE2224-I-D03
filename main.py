@@ -10,11 +10,12 @@ from shm_ugw_analysis.data_io.load_signals import (
     allowed_emitters,
     allowed_receivers,
     allowed_frequencies,
-    all_paths
+    relevant_cycles,
+    all_paths,
 )
 from shm_ugw_analysis.data_io.paths import PLOT_DIR
 
-from shm_ugw_analysis.stats_processing.welch_psd_peaks import plot_signal_collection_psd_peaks, calculate_coherence
+from shm_ugw_analysis.stats_processing.welch_psd_peaks import plot_signal_collection_psd_peaks, calculate_coherence, plot_coherence
 
 sb = Signal('0', 'received', 1, 4, 100)
 s1 = Signal('1000', 'received', 1, 4, 100)
@@ -31,14 +32,12 @@ sc = signal_collection(
 
 plot_signal_collection_psd_peaks(sc, bin_width=2000, file_label='changing_cycles')
 
-coherence_b = calculate_coherence(sb, bin_width=2000)
-coherence_s1 = calculate_coherence(s1, bin_width=2000)
-coherence_s2 = calculate_coherence(s2, bin_width=2000)
+sc_coherence = signal_collection(
+    cycles=relevant_cycles,
+    signal_types=('excitation',),
+    emitters=(1,),
+    receivers=(4,),
+    frequencies=(180,)
+)
 
-fig, ax = plt.subplots(1, 1, figsize=(12, 10))
-ax.plot(coherence_b[0], coherence_b[1], label='cycle 0')
-ax.plot(coherence_s1[0], coherence_s1[1], label='cycle 1000')
-ax.plot(coherence_s2[0], coherence_s2[1], label='cycle 70000')
-ax.legend()
-savepath = PLOT_DIR.joinpath('coherence.png')
-plt.savefig(savepath, dpi=500)
+plot_coherence(sc_coherence, bin_width=5000)

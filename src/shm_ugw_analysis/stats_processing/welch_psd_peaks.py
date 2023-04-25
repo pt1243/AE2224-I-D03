@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
 from scipy.signal import welch, find_peaks, coherence
+from scipy.ndimage import gaussian_filter1d
 from ..data_io.load_signals import (
     load_data,
     allowed_emitters,
@@ -14,10 +15,14 @@ from ..data_io.load_signals import (
     path_collection, 
     InvalidSignalError
 )
-from ..data_io.paths import ROOT_DIR
+from ..data_io.paths import ROOT_DIR, PLOT_DIR
 import pathlib
 from matplotlib.ticker import ScalarFormatter
 from typing import Optional, Iterable, Sequence
+
+
+if not pathlib.Path.exists(PLOT_DIR):
+    pathlib.Path.mkdir(PLOT_DIR)
 
 
 # Note that Welch's method is a cross power spectral density approximation Pxy 
@@ -129,10 +134,6 @@ def plot_signal_psd_peaks(
     peaks_array = np.array((psd_welch_peaks_location, y_psd_welch_peaks))
     print(f'{s} has peaks of magnitude {y_psd_welch_peaks} at locations {psd_welch_peaks_location}, corresponding to {x_psd_welch_peaks}')
 
-    PLOT_DIR = ROOT_DIR.joinpath('plots')
-    if not pathlib.Path.exists(PLOT_DIR):
-        pathlib.Path.mkdir(PLOT_DIR)
-
     ax.plot(x_psd_welch, y_psd_welch_magnitude_dB)
     ax.plot(peaks_array[0], peaks_array[1], "x")
     return
@@ -150,3 +151,20 @@ def calculate_coherence(s: Signal, bin_width: float | int, **kwargs):
     s_psd = psd_welch(s, bin_width=bin_width)
     coherence_arr = coherence(s_psd[1], baseline_psd[1], **kwargs)
     return coherence_arr
+
+
+def plot_coherence(sc: Iterable[Signal], bin_width: float | int):
+    """Plot the coherence for a collection of signals."""
+    fig, ax = plt.subplots(1, 1, figsize=(14, 10))
+    for s in sc:
+        coherence_arr = calculate_coherence(s, bin_width=bin_width)
+        smoothed = gaussian_filter1d(coherence_arr[1], sigma=2)
+        ax.plot(coherence_arr[0], smoothed, 
+                label=f'Cycle {s.cycle}, {s.signal_type}, {s.emitter}-{s.receiver}, {s.frequency} kHz')
+    ax.legend()
+    ax.grid()
+    # ax.set_yscale('log')
+    filepath = PLOT_DIR.joinpath('coherence.png')
+    plt.savefig(filepath, dpi=500)
+    print(f'Coherence plot saved to {PLOT_DIR.joinpath(filepath)}')
+    return
