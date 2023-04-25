@@ -144,12 +144,12 @@ def get_baseline(s: Signal):
     return Signal('0', s.signal_type, s.emitter, s.receiver, s.frequency)
 
 
-def calculate_coherence(s: Signal, bin_width: float | int, **kwargs):
+def calculate_coherence(s: Signal, bin_width: float | int):
     """Calculate the coherence between a given signal and baseline."""
     baseline = get_baseline(s)
     baseline_psd = psd_welch(baseline, bin_width=bin_width)
     s_psd = psd_welch(s, bin_width=bin_width)
-    coherence_arr = coherence(s_psd[1], baseline_psd[1], **kwargs)
+    coherence_arr = coherence(s_psd[1], baseline_psd[1])
     return coherence_arr
 
 

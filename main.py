@@ -37,7 +37,7 @@ sc_coherence = signal_collection(
     signal_types=('excitation',),
     emitters=(1,),
     receivers=(4,),
-    frequencies=(160,)
+    frequencies=(180,)
 )
 
-plot_coherence(sc_coherence, bin_width=2000, sigma=1.5)
+plot_coherence(sc_coherence, bin_width=3000, sigma=2)
