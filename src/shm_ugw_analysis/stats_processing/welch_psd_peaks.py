@@ -187,7 +187,7 @@ def plot_coherence_3d(sc: Iterable[Signal], bin_width: float | int):
     
     ax.legend()
     #ax.grid()
-    ax.set_xlabel('freq bands')
+    ax.set_xlabel('response frequency bands')
     ax.set_ylabel('coherence')
     ax.view_init(vertical_axis = 'y')
     # elev = -52, azim = 90, roll = 45
@@ -195,6 +195,7 @@ def plot_coherence_3d(sc: Iterable[Signal], bin_width: float | int):
     #ax.elev = -52
     ax.set_zlabel('cycles')
     # ax.set_yscale('log')
+    ax.set_title(f'Cycle {s.cycle}, {s.signal_type}, {s.emitter}-{s.receiver}, {s.frequency} kHz')
     filepath = PLOT_DIR.joinpath('coherence.png')
     plt.savefig(filepath, dpi=500)
     plt.show()
