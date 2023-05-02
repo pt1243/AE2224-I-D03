@@ -147,28 +147,28 @@ def get_baseline(s: Signal):
     return Signal('0', s.signal_type, s.emitter, s.receiver, s.frequency)
 
 
-def calculate_coherence(s: Signal, bin_width: float | int, **kwargs):
+def calculate_coherence(s: Signal, bin_width: float | int):
     """Calculate the coherence between a given signal and baseline."""
     baseline = get_baseline(s)
     baseline_psd = psd_welch(baseline, bin_width=bin_width)
     s_psd = psd_welch(s, bin_width=bin_width)
-    coherence_arr = coherence(s_psd[1], baseline_psd[1], **kwargs)
+    coherence_arr = coherence(s_psd[1], baseline_psd[1])
     return coherence_arr
 
 
-def plot_coherence(sc: Iterable[Signal], bin_width: float | int):
+def plot_coherence(sc: Iterable[Signal], bin_width: float | int, sigma: float | int):
     """Plot the coherence for a collection of signals."""
     fig, ax = plt.subplots(1, 1, figsize=(14, 10))
     for s in sc:
         coherence_arr = calculate_coherence(s, bin_width=bin_width)
-        smoothed = gaussian_filter1d(coherence_arr[1], sigma=2)
+        smoothed = gaussian_filter1d(coherence_arr[1], sigma=sigma)
         ax.plot(coherence_arr[0], smoothed, 
                 label=f'Cycle {s.cycle}, {s.signal_type}, {s.emitter}-{s.receiver}, {s.frequency} kHz')
     ax.legend()
     ax.grid()
     # ax.set_yscale('log')
     filepath = PLOT_DIR.joinpath('coherence.png')
-    plt.savefig(filepath, dpi=500)
+    plt.savefig(filepath, dpi=500, bbox_inches='tight')
     print(f'Coherence plot saved to {PLOT_DIR.joinpath(filepath)}')
     return
 

@@ -40,5 +40,4 @@ sc_coherence = signal_collection(
     frequencies=(160,)
 )
 
-#plot_coherence(sc_coherence, bin_width=5000)
-plot_coherence_3d(sc_coherence, bin_width=3000)
+plot_coherence(sc_coherence, bin_width=3000, sigma=2)
