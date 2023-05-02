@@ -227,7 +227,7 @@ def Scalogram_New(cycle: str, signal_type: str, emitter: int, receiver:int, freq
 ###################################################################################
 #print(pywt.wavelist())
 #plot(cycle, signal_type, emitter, receiver, frequency, x_bounds, y_bounds)
-scalogram_plot(cycle, signal_type, emitter, receiver, frequency)
+#scalogram_plot(cycle, signal_type, emitter, receiver, frequency)
 scalogram_subplots(cycle, signal_type, emitter, receiver, frequency)
 #Scalogram_New(cycle, signal_type, emitter, receiver, frequency)
 scalogram_visual(signal_type, emitter, receiver, frequency)
