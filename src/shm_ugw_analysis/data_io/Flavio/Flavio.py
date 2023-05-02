@@ -3,6 +3,7 @@ from scipy import signal
 import matplotlib.pyplot as plt
 from shm_ugw_analysis.data_io.load import load_data
 import pywt 
+from matplotlib.colors import ListedColormap
 #import os
 
 #healthy_path = "C:\\Users\\Gebruiker\\Desktop\\TU DELFT\\Year 2\\Project 2nd semester\\npz_files\\npz_files\\L2_S2_cycle_60000"
@@ -29,16 +30,17 @@ def plot(cycle: str, signal_type: str, emitter: int, receiver: int, frequency: i
     plt.savefig('test.png')
     return y,t,desc,frequency
 
-cycle = '0' 
+cycle = '70000' 
 signal_type = 'received'
-emitter =1
+emitter = 2
 receiver = 5
-frequency = 100
+frequency = 180
 
-x_bounds = [0,0.00002] #x domain shown
+x_bounds = [0,0.00003] #x domain shown
 y_bounds = [-0.1,0.1] #y domain shown
 x_bounds1 = [0,0.00002]
 y_bounds1 = [-0.25,0.25]
+
 
 def r_vs_em(cycle: str, emitter: int, receiver:int, frequency: int, x_bounds: list, y_bounds: list):
     plot(cycle, 'excitation', emitter, receiver, frequency, x_bounds, y_bounds)
@@ -68,7 +70,7 @@ def scalogram_plot(cycle: str, signal_type: str, emitter: int, receiver:int, fre
 
     y, t, desc = load_data(cycle, signal_type, emitter, receiver, frequency)
 
-    scales = np.arange(1, 70)
+    scales = np.arange(10, 40)
 
     freqs = pywt.scale2frequency('morl', scales)
     min_freq, max_freq = freqs[0], freqs[-1]
@@ -77,16 +79,18 @@ def scalogram_plot(cycle: str, signal_type: str, emitter: int, receiver:int, fre
 
     coef, freqs = pywt.cwt(y, scales, 'morl') #Finding CWT
 
+
     fig = plt.figure(figsize=(15,10))
-    plt.imshow(abs(coef), extent=[0, 0.00002, max_freq, min_freq], interpolation='bilinear', cmap='jet', aspect='auto', vmax=abs(coef).max(), vmin=-abs(coef).max())
+    plt.imshow(abs(coef), extent=[0, 0.0002, max_freq, min_freq], interpolation='bilinear', cmap='gist_ncar', aspect='auto', vmax=abs(coef).max(), vmin=-abs(coef).max())
     #plt.gca().invert_yaxis()
     plt.yticks(new_freqs)
-    plt.xticks(np.arange(0, 0.00002, 0.000001))
+    plt.xticks(np.arange(0, 0.0002, 0.000001))
     label = "cycle " + str(cycle) + ", " + str(signal_type) + ", " + str(emitter) + "-" + str(receiver) + ", " + str(frequency)
     plt.title(label, fontsize=25)
     plt.xlabel('Time [s]')
     plt.ylabel('Frequency [Hz]')
-    plt.xlim(0.19e-5,0.22e-5)
+    #plt.xlim(0.190e-5,0.235e-5)
+    plt.xlim(1.8e-5,2.3e-5)
 
     plt.colorbar()
     plt.savefig('Scalogram.png')
@@ -98,22 +102,34 @@ def scalogram_subplots(cycle: str, signal_type: str, emitter: int, receiver:int,
     idx = 0
     for i in cycles:
         y, t, desc = load_data(i, signal_type, emitter, receiver, frequency)
-        scales = np.arange(1, 70)
+        scales = np.arange(10, 20)
         freqs = pywt.scale2frequency('morl', scales)
         min_freq, max_freq = freqs[0], freqs[-1]
         num_freqs = len(freqs)
         new_freqs = np.linspace(min_freq, max_freq, num_freqs)
         coef, freqs = pywt.cwt(y, scales, 'morl') #Finding CWT
         plt.subplot(2, 5, idx + 1)
-        plt.imshow(abs(coef), extent=[0, 0.00002, max_freq, min_freq], interpolation='bilinear', cmap='jet', aspect='auto', vmax=abs(coef).max(), vmin=-abs(coef).max())
+        plt.imshow(abs(coef), extent=[0, 0.00002, max_freq, min_freq], interpolation='bilinear', cmap='gist_ncar', aspect='auto', vmax=abs(coef).max(), vmin=-abs(coef).max())
         plt.yticks(new_freqs)
         plt.xticks(np.arange(0, 0.00002, 0.000001))
         label = cycles[idx]
-        plt.title(label, fontsize=15)
-        plt.xlim(0.19e-5,0.22e-5)
+        plt.title(label, fontsize=10)
+        plt.xlim(0.2e-5,0.215e-5)
         plt.axis('off')
         plt.savefig('Scalogram_subplots.png')
         idx += 1
+
+def scalogram_visual(signal_type: str, emitter: int, receiver:int, frequency: int):
+    scalogram_plot('0', signal_type, emitter, receiver, frequency)
+    scalogram_plot('1', signal_type, emitter, receiver, frequency)
+    scalogram_plot('1000', signal_type, emitter, receiver, frequency)
+    scalogram_plot('10000', signal_type, emitter, receiver, frequency)
+    scalogram_plot('20000', signal_type, emitter, receiver, frequency)
+    scalogram_plot('30000', signal_type, emitter, receiver, frequency)
+    scalogram_plot('40000', signal_type, emitter, receiver, frequency)
+    scalogram_plot('50000', signal_type, emitter, receiver, frequency)
+    scalogram_plot('60000', signal_type, emitter, receiver, frequency)
+    scalogram_plot('70000', signal_type, emitter, receiver, frequency)
 
 
 
@@ -186,12 +202,35 @@ def PSD_compare(signal_type: str, emitter: int, receiver:int, frequency: int):
     PSD('10000', signal_type, emitter, receiver, frequency)
     PSD('70000', signal_type, emitter, receiver, frequency)
 
+def Scalogram_New(cycle: str, signal_type: str, emitter: int, receiver:int, frequency: int):
+    y, t, desc = load_data(cycle, signal_type, emitter, receiver, frequency)
+    
+    scales = np.arange(1, 20)
+    cwtmatr = signal.cwt(y, signal.morlet2, scales)
+
+    plt.imshow(np.real(cwtmatr), extent=[-1, 1, 1, 31], cmap="gist_ncar", aspect="auto", vmax=abs(cwtmatr).max(), vmin=-abs(cwtmatr).max())
+    #plt.yticks(new_freqs)
+    #plt.xticks(np.arange(0, 0.0002, 0.000001))
+    label = "cycle " + str(cycle) + ", " + str(signal_type) + ", " + str(emitter) + "-" + str(receiver) + ", " + str(frequency)
+    plt.title(label, fontsize=25)
+    #plt.xlabel('Time [s]')
+    #plt.ylabel('Frequency [Hz]')
+    #plt.xlim(0.190e-5,0.235e-5)
+    #plt.xlim(1.8e-5,2.3e-5)
+
+    plt.colorbar()
+    plt.savefig('Scalogram_new.png')
+
+
 
 
 ###################################################################################
+#print(pywt.wavelist())
 #plot(cycle, signal_type, emitter, receiver, frequency, x_bounds, y_bounds)
-#scalogram_plot(cycle, signal_type, emitter, receiver, frequency)
+scalogram_plot(cycle, signal_type, emitter, receiver, frequency)
 scalogram_subplots(cycle, signal_type, emitter, receiver, frequency)
+#Scalogram_New(cycle, signal_type, emitter, receiver, frequency)
+scalogram_visual(signal_type, emitter, receiver, frequency)
 #scalogram_plot2(cycle, signal_type, emitter, receiver, frequency)
 #wavelet_variance(cycle, signal_type, emitter, receiver, frequency)
 #PSD(cycle, signal_type, emitter, receiver, frequency)
