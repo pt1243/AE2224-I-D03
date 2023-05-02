@@ -171,9 +171,19 @@ def wavelet_definition():
 
 def CWT_custom_wavelet(file, custom_wavelet, sampling_frequency, number_of_cycles):
     cycle, signal_type, emitter, receiver, frequency, x_bounds, y_bounds = wave(file)
+    title = "N_cycles=" + str(number_of_cycles) + "samp_frequency=" + str(sampling_frequency) + "---" + str(cycle) + "-" + str(signal_type) + "- em_" + str(emitter) + "- rec_" + str(receiver) + "- freq_" + str(frequency)
     y, t, desc = load_data(cycle, signal_type, emitter, receiver, frequency)
     scales = np.arange(1,100)
     coefficients, frequencies = pywt.cwt(y, scales, custom_wavelet, sampling_period=1/sampling_frequency)
+    plt.figure()
+    plt.imshow(np.abs(coefficients), extent=[t.min(), t.max(), frequencies[-1], frequencies[0]], cmap='jet', aspect='auto')
+    plt.xlabel('Time (s)')
+    plt.ylabel('Frequency (Hz)')
+    plt.colorbar()
+    plt.title(title)
+    plt.savefig('CWT_custom.png')
+    
+
 
 #=================================================
 #=================================================
@@ -199,8 +209,7 @@ file = (1, 1, 2, 6, 140)
 t = np.arange(-1, 1, 0.001)
 f = 10
 n = 20
-s = n/(2*np.pi*f)
-w = morlet_wavelet_real(f, s, t)
+CWT_custom_wavelet(file, wavelet_definition, f, n)
 #plt.plot(t, w)
 #w_i = morlet_wavelet_imag(f, s, t)
 #plt.plot(t, w_i)
