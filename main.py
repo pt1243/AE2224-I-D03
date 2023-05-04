@@ -16,7 +16,7 @@ from shm_ugw_analysis.data_io.load_signals import (
 )
 from shm_ugw_analysis.data_io.paths import PLOT_DIR
 
-from shm_ugw_analysis.stats_processing.welch_psd_peaks import plot_signal_collection_psd_peaks, calculate_coherence, plot_coherence, plot_coherence_3d, butter_lowpass, our_fft, plot_signal_collection_fft
+from shm_ugw_analysis.stats_processing.welch_psd_peaks import plot_signal_collection_psd_peaks, calculate_coherence, plot_coherence, plot_coherence_3d, butter_lowpass, our_fft, plot_signal_collection_fft, real_find_peaks
 
 sb = Signal('0', 'received', 1, 4, 100)
 s1 = Signal('1000', 'received', 1, 4, 100)
@@ -58,7 +58,11 @@ for cycle in relevant_cycles:
         else:
             average_buttered_fft += buttered_fft
     average_buttered_fft /= (i + 1)
-    plt.plot(average_buttered_fft[0], average_buttered_fft[1], label=f'buttered cycle {cycle}, received, all paths, 180 kHz')
+    x_peaks, y_peaks = real_find_peaks(average_buttered_fft)
+    x_min, y_min = real_find_peaks(-1*average_buttered_fft)
+    ax.plot(x_peaks, y_peaks, "x")
+    ax.plot(x_min, -y_min, "x")
+    ax.plot(average_buttered_fft[0], average_buttered_fft[1], label=f'buttered cycle {cycle}, received, all paths, 180 kHz')
     #unbuttered_fft = our_fft(s.x, fs)
     #plt.plot(unbuttered_fft[0], unbuttered_fft[1], label=f'unbuttered Cycle {s.cycle}, {s.signal_type}, {s.emitter}-{s.receiver}, {s.frequency}')
 
