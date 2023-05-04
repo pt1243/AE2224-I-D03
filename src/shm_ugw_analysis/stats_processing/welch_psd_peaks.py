@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
 from scipy.signal import welch, find_peaks, coherence, butter, freqs, sosfilt
 from scipy.ndimage import gaussian_filter1d
-from scipy.fft import fft, fftfreq
+from scipy.fft import fft, fftfreq, rfft, rfftfreq
 from ..data_io.load_signals import (
     load_data,
     allowed_emitters,
@@ -35,10 +35,7 @@ if not pathlib.Path.exists(PLOT_DIR):
 
 # IDEALLY SHOULD ONLY BE PSD PLOTTING FUNCTION WITH MAX/MIN & SMOOTHING
 
-def butter_lowpass(s: Signal):
-    fs = s.sample_frequency
-    #b, a = butter(N, 450000, btype='low', analog=False, output='sos', fs=None)
-    #out = freqs(b, a, worN=200, plot=None)
+def butter_lowpass(s: Signal, fs):
     sos = butter(10, 450000, btype='low', fs=fs, output='sos')
     filtered = sosfilt(sos, s)
     return filtered
@@ -60,15 +57,15 @@ def our_fft(x, fs):
     '''
     ## Option 2: 
     N = len(x)
-    y_fft = fft(x)
-    x_fft = fftfreq(N, d=1/fs)
+    y_fft = rfft(x)
+    x_fft = rfftfreq(N, d=1/fs)
 
     y_fft_magnitude = np.abs(y_fft)
     y_fft_magnitude_gaussian = gaussian_filter1d(y_fft_magnitude, sigma=1)
 
     y_fft_magnitude_dB = 10*np.log10(y_fft_magnitude)
-    y_fft_magnitude_dB_gaussian = gaussian_filter1d(y_fft_magnitude_dB, sigma=1)
-    array_out = np.array((x_fft, y_fft_magnitude_dB))
+    y_fft_magnitude_dB_gaussian = gaussian_filter1d(y_fft_magnitude_dB, sigma=5)
+    array_out = np.array((x_fft, y_fft_magnitude_dB_gaussian))
     return array_out
 
 def psd_welch(s: Signal, bin_width: int | float):

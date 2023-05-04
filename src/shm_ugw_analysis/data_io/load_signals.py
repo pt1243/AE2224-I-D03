@@ -275,7 +275,7 @@ def frequency_collection(
     """
     validator.validate_cycles(cycles)
     validator.validate_signal_types(signal_types)
-    validator.validate_frequencies((frequency))
+    validator.validate_frequencies((frequency,))
     if paths is not None:
         for (emitter, receiver) in paths:
             validator.validate_emitter_receiver_pair(emitter, receiver)
