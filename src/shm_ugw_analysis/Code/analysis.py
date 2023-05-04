@@ -11,7 +11,7 @@ dis = [di.cross_correlation, di.central_spectrum_loss, di.spectrum_loss, di.diff
 
 
 def plot_di():
-    dis = np.array([di.excitation_max_freq(Signal(c, 'received', 2, 5, 160)) for c in cycles])
+    dis = np.array([di.resonance_max_val(Signal(c, 'received', 6, 3, 180)) for c in cycles])
     dis -= np.min(dis)
     dis /= np.max(dis) if np.max(dis) > 0 else 1
     plt.plot(nb_cycles, dis)
@@ -57,3 +57,6 @@ def compare_var():
     plt.plot(frequencies, var, 'b')
     plt.show()
     pass
+
+
+plot_di()
