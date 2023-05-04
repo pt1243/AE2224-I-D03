@@ -13,7 +13,7 @@ allowed_emitters: Final = (1, 2, 3, 4, 5, 6)
 allowed_receivers: Final = allowed_emitters
 allowed_frequencies: Final = (100, 120, 140, 160, 180)
 
-relevant_cycles: Final = ('0', '1', '1000', '10000', '20000', '30000', '40000', '50000', '60000', '70000') 
+relevant_cycles: Final = ('0', '1', '1000', '10000', '20000', '30000', '40000', '50000', '60000', '70000')
 
 _all_paths = []
 for i in range(1, 4):
@@ -22,6 +22,7 @@ for i in range(1, 4):
         _all_paths.append((j, i))
 
 all_paths: Final = tuple(_all_paths)
+
 
 class InvalidSignalError(ValueError):
     """Raised when attempting to load a signal """
@@ -45,14 +46,14 @@ class _SignalValidator():
     @classmethod
     def from_defaults(cls):
         return cls(allowed_cycles, allowed_signal_types, allowed_emitters, allowed_receivers, allowed_frequencies)
-    
+
     def __repr__(self) -> str:
         return f'{self.__class__.__name__}({self.allowed_cycles}, {self.allowed_signal_types}, ' \
         f'{self.allowed_emitters}, {self.allowed_receivers}, {self.allowed_frequencies})'
 
     def validate_emitter_receiver_pair(self, emitter: int, receiver: int) -> None:
         """Validate a receiver and emitter pair.
-        
+
         Raises InvalidSignalError if an invalid combination is found.
         """
         if emitter not in self.allowed_emitters:
@@ -85,7 +86,7 @@ class _SignalValidator():
         if not set(transducer_numbers).issubset(self.allowed_emitters):
             raise InvalidSignalError(f'invalid transducer number in {transducer_numbers}, must be in {allowed_emitters}')
         return
-    
+
     def validate_all(self, cycles: Iterable[str], signal_types: Iterable[str], frequencies: Iterable[int]) -> None:
         self.validate_cycles(cycles)
         self.validate_signal_types(signal_types)
@@ -106,7 +107,7 @@ def load_data(
         cycle: str, signal_type: str, emitter: int, receiver: int, frequency: int
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray, str, str, pathlib.Path]:
     """Loads the data for a given measurement.
-    
+
     Note: most use cases should use signal_collection, frequency_collection, or path_collection for iteration instead.
     """
     validator.validate_all((cycle,), (signal_type,), (frequency,))
@@ -165,7 +166,7 @@ class Signal:
         return
 
     def __repr__(self) -> str:
-        return f"Signal('{self._cycle}', '{self._signal_type}', {self._emitter}, {self._receiver}, {self._frequency})"
+        return f"{self.__class__.__name__}('{self._cycle}', '{self._signal_type}', {self._emitter}, {self._receiver}, {self._frequency})"
 
     @property
     def cycle(self) -> str:
@@ -236,12 +237,51 @@ class Signal:
         return np.vstack((self._t, self._x.T)).T
 
 
+class Residual(Signal):
+    def __init__(self, cycle: str, signal_type: str, emitter: int, receiver: int, frequency: int) -> None:
+        self._signal = Signal(cycle, signal_type, emitter, receiver, frequency)
+        self._baseline = Signal('0', signal_type, emitter, receiver, frequency)
+
+        self._cycle: str = cycle
+        self._signal_type: str = signal_type
+        self._emitter: int = emitter
+        self._receiver: int = receiver
+        self._frequency: int = frequency
+
+        self._x: np.ndarray
+        self._t: np.ndarray
+        self._desc: np.ndarray
+        self._folder: str
+        self._filename: str
+        self._full_path: pathlib.Path
+
+        self._x = self._signal.x - self._baseline.x
+        self._t = self._signal.t
+
+        self._desc = self._signal._desc
+        self._folder = self._signal._folder
+        self._filename = self._signal._filename
+        self._full_path = self._signal._full_path
+
+        self._x.setflags(write=False)
+        self._t.setflags(write=False)
+        self._desc.setflags(write=False)
+
+        self._sample_interval: float = np.around(self._desc[0], decimals=8)
+        self._sample_frequency: int = int(np.around(self._desc[1]))
+
+        self._length = self._x.size
+
+        return
+
+
 def signal_collection(
         cycles: Iterable[str],
         signal_types: Iterable[str],
         emitters: Iterable[int],
         receivers: Iterable[int],
-        frequencies: Iterable[int]
+        frequencies: Iterable[int],
+        residual: bool = False,
 ) -> Iterator[Signal]:
     """Iterate over all signals that are the product of the arguments."""
     validator.validate_signal_types(signal_types)
@@ -255,11 +295,17 @@ def signal_collection(
             if emitter in (1, 2, 3):
                 for receiver in receivers:
                     if receiver in (4, 5, 6):
-                        yield Signal(cycle, signal_type, emitter, receiver, frequency)
+                        if not residual:
+                            yield Signal(cycle, signal_type, emitter, receiver, frequency)
+                        else:
+                            yield Residual(cycle, signal_type, emitter, receiver, frequency)
             else:
                 for receiver in receivers:
                     if receiver in (1, 2, 3):
-                        yield Signal(cycle, signal_type, emitter, receiver, frequency)
+                        if not residual:
+                            yield Signal(cycle, signal_type, emitter, receiver, frequency)
+                        else:
+                            yield Residual(cycle, signal_type, emitter, receiver, frequency)
 
 
 def frequency_collection(
@@ -267,9 +313,10 @@ def frequency_collection(
         signal_types: Iterable[str],
         frequency: int,
         paths: Optional[Iterable[tuple[int, int]]],
+        residual: bool = False,
 ) -> Iterator[Signal]:
     """Iterate over all signal paths for a given frequency.
-    
+
     Paths should be a list of emitter/receiver tuples, eg. [(1, 4), (1, 5), (1, 6)], or left as none to use all paths
     by default.
     """
@@ -284,7 +331,10 @@ def frequency_collection(
 
     for cycle, signal_type in product(cycles, signal_types):
         for path in paths:
-            yield Signal(cycle, signal_type, *path, frequency)
+            if not residual:
+                yield Signal(cycle, signal_type, *path, frequency)
+            else:
+                yield Residual(cycle, signal_type, *path, frequency)
 
 
 def path_collection(
@@ -292,9 +342,10 @@ def path_collection(
         signal_types: Iterable[str],
         path: tuple[int, int],
         frequencies: Iterable[int],
+        residual: bool = False,
 ) -> Iterator[Signal]:
     """Iterate over all frequencies for a given signal path.
-    
+
     The signal path is given as a tuple of the emitter and receiver, eg. (1, 4).
     """
     validator.validate_cycles(cycles)
@@ -303,4 +354,7 @@ def path_collection(
     validator.validate_frequencies(frequencies)
 
     for cycle, signal_type, frequency in product(cycles, signal_types, frequencies):
-        yield Signal(cycle, signal_type, *path, frequency)
+        if not residual:
+            yield Signal(cycle, signal_type, *path, frequency)
+        else:
+            yield Residual(cycle, signal_type, *path, frequency)
