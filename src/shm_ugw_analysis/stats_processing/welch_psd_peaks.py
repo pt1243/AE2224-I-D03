@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
-from scipy.signal import welch, find_peaks, coherence
+from scipy.signal import welch, find_peaks, coherence, butter, freqs, sosfilt
 from scipy.ndimage import gaussian_filter1d
 from ..data_io.load_signals import (
     load_data,
@@ -34,6 +34,46 @@ if not pathlib.Path.exists(PLOT_DIR):
 
 # IDEALLY SHOULD ONLY BE PSD PLOTTING FUNCTION WITH MAX/MIN & SMOOTHING
 
+def butter_lowpass(signal, fs):
+    #b, a = butter(N, 450000, btype='low', analog=False, output='sos', fs=None)
+    #out = freqs(b, a, worN=200, plot=None)
+    sos = butter(10, 450000, btype='low', fs=fs, output='sos')
+    filtered = sosfilt(sos, signal)
+    return filtered
+
+def fft():
+     # Signal Segmentation
+        s: Signal
+        x = s.x
+        t = s.t
+        # Parameters
+        fs = s.sample_frequency
+        #print(f'fs={fs}')
+        nperseg = int(fs/bin_width)
+        # Normalizing
+        x_std = (x - np.mean(x))/np.std(x)
+
+        # Standard FFT Method
+        ## Option 1: Hanning Window
+        '''
+        N = len(x)
+        window = np.hanning(N)
+        x_filtered = x_std * window
+        y_fft = np.fft.fft(x_filtered)/N
+        x_fft = np.fft.fftfreq(N, d=1/fs)
+        y_fft_magnitude = np.abs(y_fft)
+        y_fft_magnitude = gaussian_filter1d(y_fft_magnitude, sigma=10)
+        #y_fft_magnitude_dB = 10*np.log10(y_fft_magnitude)
+        '''
+        ## Option 2: 
+        N = len(x)
+        y_fft = fft(x_std)
+        x_fft = fftfreq(N, d=1/fs)
+        y_fft_magnitude = np.abs(y_fft)
+        y_fft_magnitude = gaussian_filter1d(y_fft_magnitude, sigma=1)
+        y_fft_magnitude_dB = 10*np.log10(y_fft_magnitude)
+        y_fft_magnitude_dB = gaussian_filter1d(y_fft_magnitude_dB, sigma=1)
+    return
 
 def psd_welch(s: Signal, bin_width: int | float):
     """Calculate the PSD for a single signal."""
