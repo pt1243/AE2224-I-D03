@@ -43,14 +43,8 @@ def butter_lowpass(s: Signal):
     filtered = sosfilt(sos, s)
     return filtered
 
-def fft(s: Signal, bin_width: int | float):
-    fs = s.sample_frequency
-    nperseg = int(fs/bin_width)
-    # Signal Segmentation
-    s: Signal
-    x = s.x
-    t = s.t
-    x_std = (x - np.mean(x))/np.std(x)
+def our_fft(x, fs):
+    # DON'T STANDARDIZE FOR COMPARISON'S SAKE
 
     # Standard FFT Method
     ## Option 1: Hanning Window
@@ -66,13 +60,15 @@ def fft(s: Signal, bin_width: int | float):
     '''
     ## Option 2: 
     N = len(x)
-    y_fft = fft(x_std)
+    y_fft = fft(x)
     x_fft = fftfreq(N, d=1/fs)
+
     y_fft_magnitude = np.abs(y_fft)
-    y_fft_magnitude = gaussian_filter1d(y_fft_magnitude, sigma=1)
+    y_fft_magnitude_gaussian = gaussian_filter1d(y_fft_magnitude, sigma=1)
+
     y_fft_magnitude_dB = 10*np.log10(y_fft_magnitude)
-    y_fft_magnitude_dB = gaussian_filter1d(y_fft_magnitude_dB, sigma=1)
-    array_out = np.array(x_fft, y_fft_magnitude_dB)
+    y_fft_magnitude_dB_gaussian = gaussian_filter1d(y_fft_magnitude_dB, sigma=1)
+    array_out = np.array((x_fft, y_fft_magnitude_dB))
     return array_out
 
 def psd_welch(s: Signal, bin_width: int | float):
@@ -85,7 +81,6 @@ def psd_welch(s: Signal, bin_width: int | float):
 
     x_psd_welch, y_psd_welch = welch(s.x, fs, nperseg=nperseg)
     return np.array((x_psd_welch, y_psd_welch))
-
 
 def find_psd_peaks(
         s: Signal,
@@ -115,6 +110,33 @@ def find_psd_peaks(
     print(f'{s} has peaks of magnitude {y_psd_welch_peaks} at locations {psd_welch_peaks_location}, corresponding to {x_psd_welch_peaks}')
 
     return peaks_array
+
+def plot_signal_collection_fft(sc: Iterable[Signal], bin_width: int | float, file_label: str = None) -> None:
+    """Plot and save the Welch PSD peaks for a signal collection."""
+    PLOT_DIR = ROOT_DIR.joinpath('plots')
+    if not pathlib.Path.exists(PLOT_DIR):
+        pathlib.Path.mkdir(PLOT_DIR)
+    fig, ax = plt.subplots(1, 1, figsize=(50, 10))
+    for s in sc:
+        print(f'Now plotting {s}')
+        out_fft = our_fft(s.x, s.fs)  # compute the PSD
+        ax.plot(out_fft[0], out_fft[1], label=f'Cycle {s.cycle}, {s.signal_type} {s.emitter}-{s.receiver}, {s.frequency} kHz')  # plot the PSD
+    ax.grid()
+    ax.set_xlabel('Frequency [Hz]')
+    ax.set_ylabel('Power [dBW]')
+    #ax.set_xlim(0, 2500000)
+    #ax.set_xlim(0.5*10**5, 10*10**5)
+    ax.xaxis.set_major_formatter(ScalarFormatter(useMathText=True))
+    ax.ticklabel_format(style="sci", axis="x", scilimits=(0,0))
+    ax.set_title(f'PSD with peaks')
+    ax.legend()
+    filename = 'PSD.png' if file_label is None else f'PSD_{file_label}.png'
+    file_path = PLOT_DIR.joinpath(filename)
+    fig.savefig(file_path, dpi=500, bbox_inches='tight')
+    print(f'Figure saved to {PLOT_DIR.joinpath(filename)}')
+    plt.show()
+    plt.close()
+    return
 
 
 def plot_signal_collection_psd_peaks(sc: Iterable[Signal], bin_width: int | float, file_label: str = None) -> None:
