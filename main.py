@@ -50,16 +50,16 @@ for cycle in relevant_cycles:
     fc = frequency_collection(cycles=(cycle,), signal_types=('received',), frequency=100, paths=None)
     for i, s in enumerate(fc):
         fs = s.sample_frequency
-        #buttered_array = butter_lowpass(s.x, fs)
-        buttered_array = s.x
-        buttered_fft = our_fft(buttered_array, fs)
+        buttered_array = butter_lowpass(s.x, fs, order=20)
+        #buttered_array = s.x
+        buttered_fft = our_fft(buttered_array, fs, sigma=20)
         if i == 0:
             average_buttered_fft = buttered_fft
         else:
             average_buttered_fft += buttered_fft
     average_buttered_fft /= (i + 1)
     x_peaks, y_peaks = real_find_peaks(average_buttered_fft)
-    x_min, y_min = real_find_peaks(-1*average_buttered_fft)
+    x_min, y_min = real_find_peaks((average_buttered_fft[0], -average_buttered_fft[1]))
     ax.plot(x_peaks, y_peaks, "x")
     ax.plot(x_min, -y_min, "x")
     ax.plot(average_buttered_fft[0], average_buttered_fft[1], label=f'buttered cycle {cycle}, received, all paths, 180 kHz')

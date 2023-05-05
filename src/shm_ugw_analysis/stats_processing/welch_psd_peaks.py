@@ -35,12 +35,12 @@ if not pathlib.Path.exists(PLOT_DIR):
 
 # IDEALLY SHOULD ONLY BE PSD PLOTTING FUNCTION WITH MAX/MIN & SMOOTHING
 
-def butter_lowpass(s: Signal, fs):
-    sos = butter(10, 450000, btype='low', fs=fs, output='sos')
+def butter_lowpass(s: Signal, fs, order):
+    sos = butter(order, 450000, btype='low', fs=fs, output='sos')
     filtered = sosfilt(sos, s)
     return filtered
 
-def our_fft(x, fs):
+def our_fft(x, fs, sigma):
     # DON'T STANDARDIZE FOR COMPARISON'S SAKE
 
     # Standard FFT Method
@@ -61,10 +61,10 @@ def our_fft(x, fs):
     x_fft = rfftfreq(N, d=1/fs)
 
     y_fft_magnitude = np.abs(y_fft)
-    y_fft_magnitude_gaussian = gaussian_filter1d(y_fft_magnitude, sigma=1)
+    y_fft_magnitude_gaussian = gaussian_filter1d(y_fft_magnitude, sigma=sigma)
 
     y_fft_magnitude_dB = 10*np.log10(y_fft_magnitude)
-    y_fft_magnitude_dB_gaussian = gaussian_filter1d(y_fft_magnitude_dB, sigma=5)
+    y_fft_magnitude_dB_gaussian = gaussian_filter1d(y_fft_magnitude_dB, sigma=sigma)
     array_out = np.array((x_fft, y_fft_magnitude_dB_gaussian))
     return array_out
 
@@ -79,7 +79,7 @@ def psd_welch(s: Signal, bin_width: int | float):
     x_psd_welch, y_psd_welch = welch(s.x, fs, nperseg=nperseg)
     return np.array((x_psd_welch, y_psd_welch))
 
-def real_find_peaks(array, distance=1000):
+def real_find_peaks(array, distance=None):
     x, y = array[0], array[1]
     peaks_location, _ = find_peaks(y, distance=distance)
     x_peaks: np.ndarray = x[peaks_location].flatten()
@@ -125,7 +125,7 @@ def plot_signal_collection_fft(sc: Iterable[Signal], bin_width: int | float, fil
     fig, ax = plt.subplots(1, 1, figsize=(50, 10))
     for s in sc:
         print(f'Now plotting {s}')
-        out_fft = our_fft(s.x, s.fs)  # compute the PSD
+        out_fft = our_fft(s.x, s.fs, sigma=5)  # compute the PSD
         ax.plot(out_fft[0], out_fft[1], label=f'Cycle {s.cycle}, {s.signal_type} {s.emitter}-{s.receiver}, {s.frequency} kHz')  # plot the PSD
     ax.grid()
     ax.set_xlabel('Frequency [Hz]')
