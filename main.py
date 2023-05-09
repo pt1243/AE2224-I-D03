@@ -92,3 +92,31 @@ for cycle in relevant_cycles:
 ax.legend()
 ax.set_xlim(0, 450000)
 plt.show()
+
+for frequency in allowed_frequencies:
+    cc = cycle_collection(cycles=0, signal_types=('received',), frequency=(frequency,), paths=None)
+    for i, s in enumerate(cc):
+
+
+for cycle in relevant_cycles:
+    fc = frequency_collection(cycles=(cycle,), signal_types=('received',), frequency=100, paths=None)
+    for i, s in enumerate(fc):
+        fs = s.sample_frequency
+        buttered_array = butter_lowpass(s.x, fs, order=20)
+        #buttered_array = s.x
+        buttered_fft = our_fft(buttered_array, fs, sigma=3)
+        if i == 0:
+            average_buttered_fft = buttered_fft
+        else:
+            average_buttered_fft += buttered_fft
+    average_buttered_fft /= (i + 1)
+    x_peaks, y_peaks = real_find_peaks(average_buttered_fft)
+    x_min, y_min = real_find_peaks((average_buttered_fft[0], -average_buttered_fft[1]))
+    ax.plot(x_peaks, y_peaks, label=f'buttered cycle {cycle}, received, all paths, {} kHz')
+    ax.plot(x_min, -y_min, label=f'buttered cycle {cycle}, received, all paths, 180 kHz')
+    #unbuttered_fft = our_fft(s.x, fs)
+    #plt.plot(unbuttered_fft[0], unbuttered_fft[1], label=f'unbuttered Cycle {s.cycle}, {s.signal_type}, {s.emitter}-{s.receiver}, {s.frequency}')
+
+ax.legend()
+ax.set_xlim(0, 450000)
+plt.show()
