@@ -46,13 +46,13 @@ sc_coherence = signal_collection(
 
 fig, ax = plt.subplots(1, 1, figsize=(12, 10))
 
-f = 180
+f = 100
 for cycle in relevant_cycles:
     fc = frequency_collection(cycles=(cycle,), signal_types=('received',), frequency=f, paths=None, residual=False)
     for i, s in enumerate(fc):
         fs = s.sample_frequency
-        buttered_array = butter_lowpass(s.x, fs, order=20)
-        #buttered_array = s.x
+        # buttered_array = butter_lowpass(s.x, fs, order=20)
+        buttered_array = s.x
         buttered_fft = our_fft(buttered_array, fs, sigma=20)
         if i == 0:
             average_buttered_fft = buttered_fft
@@ -61,12 +61,16 @@ for cycle in relevant_cycles:
     average_buttered_fft /= (i + 1)
     x_peaks, y_peaks = real_find_peaks(average_buttered_fft)
     x_min, y_min = real_find_peaks((average_buttered_fft[0], -average_buttered_fft[1]))
+
+    x_peaks *= 100/f
+    x_min *= 100/f
+    average_buttered_fft[0] *= 100/f
+
     ax.plot(x_peaks, y_peaks, "x")
     ax.plot(x_min, -y_min, "x")
     ax.plot(average_buttered_fft[0], average_buttered_fft[1], label=f'buttered cycle {cycle}, received, all paths, {f} kHz')
     #unbuttered_fft = our_fft(s.x, fs)
     #plt.plot(unbuttered_fft[0], unbuttered_fft[1], label=f'unbuttered Cycle {s.cycle}, {s.signal_type}, {s.emitter}-{s.receiver}, {s.frequency}')
-
 
 
 ax.legend()
