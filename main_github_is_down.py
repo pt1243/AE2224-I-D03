@@ -17,11 +17,7 @@ from shm_ugw_analysis.data_io.load_signals import (
 )
 from shm_ugw_analysis.data_io.paths import PLOT_DIR
 
-<<<<<<< Updated upstream
-from shm_ugw_analysis.stats_processing.welch_psd_peaks import plot_signal_collection_psd_peaks, calculate_coherence, plot_coherence, butter_lowpass, our_fft, plot_signal_collection_fft, real_find_peaks
-=======
 from shm_ugw_analysis.stats_processing.welch_psd_peaks import plot_signal_collection_psd_peaks, calculate_coherence, plot_coherence, plot_coherence_3d, butter_lowpass, our_fft, plot_signal_collection_fft, real_find_peaks
->>>>>>> Stashed changes
 
 sb = Signal('0', 'received', 1, 4, 100)
 s1 = Signal('1000', 'received', 1, 4, 100)
@@ -76,11 +72,7 @@ for cycle in relevant_cycles:
 for cycle in relevant_cycles:
     fig, ax = plt.subplots(1, 1, figsize=(12, 10))
     for frequency in allowed_frequencies:
-<<<<<<< Updated upstream
         sc = signal_collection(cycles=(cycle,), signal_types=('received',), frequencies=(frequency,), emitters=allowed_emitters, receivers=allowed_receivers, residual=True)
-=======
-        sc = signal_collection(cycles=(cycle,), signal_types=('received',), frequencies=(frequency,), emitters=allowed_emitters, receivers=allowed_receivers)
->>>>>>> Stashed changes
         for i, s in enumerate(sc):
             fs = s.sample_frequency
             buttered_array = butter_lowpass(s.x, fs, order=20)
@@ -100,11 +92,7 @@ for cycle in relevant_cycles:
         #plt.plot(unbuttered_fft[0], unbuttered_fft[1], label=f'unbuttered Cycle {s.cycle}, {s.signal_type}, {s.emitter}-{s.receiver}, {s.frequency}')
     ax.legend()
     ax.set_xlim(0, 450000)
-<<<<<<< Updated upstream
     file_path = os.path.join(PLOT_DIR, f'buttered cycle {cycle}, received, all paths (averaged), all allowed_frequencies, residual=True')
-=======
-    file_path = os.path.join(PLOT_DIR, f'buttered cycle {cycle}, received, all paths (averaged), all allowed_frequencies')
->>>>>>> Stashed changes
     plt.savefig(file_path, dpi = 500)
     #plt.show()
     plt.clf()
