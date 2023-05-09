@@ -48,7 +48,7 @@ fig, ax = plt.subplots(1, 1, figsize=(12, 10))
 
 f = 180
 for cycle in relevant_cycles:
-    fc = frequency_collection(cycles=(cycle,), signal_types=('received',), frequency=f, paths=None)
+    fc = frequency_collection(cycles=(cycle,), signal_types=('received',), frequency=f, paths=None, residual=False)
     for i, s in enumerate(fc):
         fs = s.sample_frequency
         buttered_array = butter_lowpass(s.x, fs, order=20)
@@ -70,5 +70,5 @@ for cycle in relevant_cycles:
 
 
 ax.legend()
-ax.set_xlim(0, 75000)
+ax.set_xlim(0, 450000)
 plt.show()
