@@ -85,7 +85,7 @@ def real_find_peaks(array, distance=None):
     x_peaks: np.ndarray = x[peaks_location].flatten()
     y_peaks: np.ndarray = y[peaks_location].flatten()
     peaks_array = np.array((x_peaks, y_peaks))
-    print(f'Peaks of magnitude {y_peaks} at locations {peaks_location}, corresponding to {x_peaks}')
+    #print(f'Peaks of magnitude {y_peaks} at locations {peaks_location}, corresponding to {x_peaks}')
     return peaks_array
 
 def find_psd_peaks(
