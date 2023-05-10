@@ -45,6 +45,10 @@ sc_coherence = signal_collection(
 #plot_coherence(sc_coherence, bin_width=5000)
 #plot_coherence_3d(sc_coherence, bin_width=3000)
 
+############################################
+### VARYING CYCLES, CONSTANT FREQUENCIES ###
+############################################
+
 for f in allowed_frequencies:
     fig, ax = plt.subplots(1, 1, figsize=(12, 10))
     envelope_matrix = np.empty([len(relevant_cycles), 12501])
@@ -97,6 +101,11 @@ for f in allowed_frequencies:
     plt.savefig(file_path, dpi = 500)
     plt.show()
     plt.clf()
+
+############################################
+### VARYING FREQUENCIES, CONSTANT CYCLES ###
+############################################
+
 '''
 for cycle in relevant_cycles:
     fig, ax = plt.subplots(1, 1, figsize=(12, 10))
