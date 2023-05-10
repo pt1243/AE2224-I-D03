@@ -92,12 +92,12 @@ local_optima_bounds = {
 
 def search_peaks_arrays(f: int, optima_type: Literal["maxima", "minima"], optima_number: int, peaks_frequencies: np.ndarray, peaks_y: np.ndarray):
     """Search the peaks arrays for the given optima location and return the magnitude."""
-    print(f'{peaks_frequencies = }')
-    print(f'{peaks_y = }')
+    # print(f'{peaks_frequencies = }')
+    # print(f'{peaks_y = }')
     lower, upper = local_optima_bounds[f][optima_type][optima_number]
     lower *= 1000
     upper *= 1000
-    print(f'{lower = }, {upper = }')
+    # print(f'{lower = }, {upper = }')
     index = np.argwhere((lower <= peaks_frequencies ) & (peaks_frequencies <= upper))[0][0]
     return peaks_y[index]
 
