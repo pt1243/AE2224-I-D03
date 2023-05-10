@@ -44,31 +44,60 @@ sc_coherence = signal_collection(
 
 #plot_coherence(sc_coherence, bin_width=5000)
 #plot_coherence_3d(sc_coherence, bin_width=3000)
-'''
-fig, ax = plt.subplots(1, 1, figsize=(12, 10))
 
-f = 180
-for cycle in relevant_cycles:
-    fc = frequency_collection(cycles=(cycle,), signal_types=('received',), frequency=f, paths=None)
-    for i, s in enumerate(fc):
-        fs = s.sample_frequency
-        buttered_array = butter_lowpass(s.x, fs, order=20)
-        #buttered_array = s.x
-        buttered_fft = our_fft(buttered_array, fs, sigma=20)
-        if i == 0:
-            average_buttered_fft = buttered_fft
-        else:
-            average_buttered_fft += buttered_fft
-    average_buttered_fft /= (i + 1)
-    x_peaks, y_peaks = real_find_peaks(average_buttered_fft)
-    x_min, y_min = real_find_peaks((average_buttered_fft[0], -average_buttered_fft[1]))
-    ax.plot(x_peaks, y_peaks, "x")
-    ax.plot(x_min, -y_min, "x")
-    ax.plot(average_buttered_fft[0], average_buttered_fft[1], label=f'buttered cycle {cycle}, received, all paths, {f} kHz')
-    #unbuttered_fft = our_fft(s.x, fs)
-    #plt.plot(unbuttered_fft[0], unbuttered_fft[1], label=f'unbuttered Cycle {s.cycle}, {s.signal_type}, {s.emitter}-{s.receiver}, {s.frequency}')
-'''
+for f in allowed_frequencies:
+    fig, ax = plt.subplots(1, 1, figsize=(12, 10))
+    envelope_matrix = np.empty([len(relevant_cycles), 12501])
+    for row_index, cycle in enumerate(relevant_cycles):
+        fc = frequency_collection(cycles=(cycle,), signal_types=('received',), frequency=f, paths=None, residual=False)
+        for i, s in enumerate(fc):
+            fs = s.sample_frequency
+            buttered_array = butter_lowpass(s.x, fs, order=20)
+            #buttered_array = s.x
+            buttered_fft = our_fft(buttered_array, fs, sigma=20)
+            if i == 0:
+                average_buttered_fft = buttered_fft
+            else:
+                average_buttered_fft += buttered_fft
+        average_buttered_fft /= (i + 1)
+        x_peaks, y_peaks = real_find_peaks(average_buttered_fft)
+        x_min, y_min = real_find_peaks((average_buttered_fft[0], -average_buttered_fft[1]))
+        #ax.plot(x_peaks, y_peaks, "x")
+        #ax.plot(x_min, -y_min, "x")
+        #ax.plot(average_buttered_fft[0], average_buttered_fft[1], label=f'buttered, received, all paths, {f} kHz')
+        #unbuttered_fft = our_fft(s.x, fs)
+        #plt.plot(unbuttered_fft[0], unbuttered_fft[1], label=f'unbuttered Cycle {s.cycle}, {s.signal_type}, {s.emitter}-{s.receiver}, {s.frequency}')
+        envelope_matrix[row_index, :] = average_buttered_fft[1]
+    # green for 0-20k, yellow for 20k-40k, orange for 40k-60k, and red for 60k-70?
+    # relevant_cycles: Final = ('0', '1', '1000', '10000', '20000', '30000', '40000', '50000', '60000', '70000')
+    # Layer 1: 0, 1, 1000
+    # Layer 2: 10k, 20k, 30k
+    # Layer 3: 40k, 50k
+    # Layer 4: 60k, 70k
 
+    ax.fill_between(average_buttered_fft[0], envelope_matrix[0, :], envelope_matrix[2, :], color='#f0ff00')
+    ax.fill_between(average_buttered_fft[0], envelope_matrix[2, :], envelope_matrix[5, :], color='#ffe700')
+    ax.fill_between(average_buttered_fft[0], envelope_matrix[5, :], envelope_matrix[7, :], color='#ffdb00')
+    ax.fill_between(average_buttered_fft[0], envelope_matrix[7, :], envelope_matrix[9, :], color='#ffce00')
+    upper_envelope = np.max(envelope_matrix, axis=0)
+    print(f'Rendering plots for excitation frequency {f}...')
+    #print(envelope_matrix)
+    #print(upper_envelope)
+    lower_envelope = np.min(envelope_matrix, axis=0)
+    ax.plot(average_buttered_fft[0], upper_envelope, color='#030aa7')
+    ax.plot(average_buttered_fft[0], lower_envelope, color='#f7022a')
+    #ax.fill_between(average_buttered_fft[0], lower_envelope, upper_envelope, color='#8cffdb')
+    #print(average_buttered_fft.shape)
+    ax.legend()
+    ax.set_title(f'FFT: Buttered excitation frequency {f}, received, all paths (averaged), all cycles, residual=False')
+    ax.set_xlabel('Frequency [Hz]')
+    ax.set_ylabel('Magnitude in dB[-]')
+    ax.set_xlim(0, 450000)
+    file_path = os.path.join(PLOT_DIR, f'FFT Buttered excitation frequency {f}, received, all paths (averaged), all cycles, residual=False')
+    plt.savefig(file_path, dpi = 500)
+    plt.show()
+    plt.clf()
+'''
 for cycle in relevant_cycles:
     fig, ax = plt.subplots(1, 1, figsize=(12, 10))
     # col = 25001
@@ -94,13 +123,18 @@ for cycle in relevant_cycles:
         #unbuttered_fft = our_fft(s.x, fs)
         #plt.plot(unbuttered_fft[0], unbuttered_fft[1], label=f'unbuttered Cycle {s.cycle}, {s.signal_type}, {s.emitter}-{s.receiver}, {s.frequency}')
         envelope_matrix[row_index, :] = average_buttered_fft[1] #.flatten()
+    ax.fill_between(average_buttered_fft[0], envelope_matrix[0, :], envelope_matrix[1, :], color='#f0ff00')
+    ax.fill_between(average_buttered_fft[0], envelope_matrix[1, :], envelope_matrix[2, :], color='#ffe700')
+    ax.fill_between(average_buttered_fft[0], envelope_matrix[2, :], envelope_matrix[3, :], color='#ffdb00')
+    ax.fill_between(average_buttered_fft[0], envelope_matrix[3, :], envelope_matrix[4, :], color='#ffce00')
     upper_envelope = np.max(envelope_matrix, axis=0)
-    print(envelope_matrix)
-    print(upper_envelope)
+    print(f'Rendering plots for cycle {cycle}...')
+    #print(envelope_matrix)
+    #print(upper_envelope)
     lower_envelope = np.min(envelope_matrix, axis=0)
     ax.plot(average_buttered_fft[0], upper_envelope)
     ax.plot(average_buttered_fft[0], lower_envelope)
-    ax.fill_between(average_buttered_fft[0], lower_envelope, upper_envelope)
+    #ax.fill_between(average_buttered_fft[0], lower_envelope, upper_envelope, color='#ed0dd9')
     #print(average_buttered_fft.shape)
     ax.legend()
     ax.set_title(f'FFT: Buttered cycle {cycle}, received, all paths (averaged), all allowed_frequencies, residual=False')
@@ -111,3 +145,4 @@ for cycle in relevant_cycles:
     plt.savefig(file_path, dpi = 500)
     plt.show()
     plt.clf()
+'''
