@@ -13,7 +13,6 @@ from ..data_io.load_signals import (
     relevant_cycles,
     all_paths,
 )
-from shm_ugw_analysis.data_io.paths import PLOT_DIR
 from .welch_psd_peaks import our_fft, butter_lowpass, real_find_peaks
 from typing import Literal
 import numpy as np
@@ -91,13 +90,16 @@ local_optima_bounds = {
 # local_optima_bounds[100]["maxima"][1] -> (lower, upper) or None if not well behaved
 
 
-def search_peaks_arrays(optima_type: Literal["maxima", "minima"], optima_number: int, peaks_indices: np.ndarray, peaks_frequencies: np.ndarray, peaks_y: np.ndarray):
+def search_peaks_arrays(f: int, optima_type: Literal["maxima", "minima"], optima_number: int, peaks_frequencies: np.ndarray, peaks_y: np.ndarray):
     """Search the peaks arrays for the given optima location and return the magnitude."""
-    print(f'{peaks_indices = }')
     print(f'{peaks_frequencies = }')
     print(f'{peaks_y = }')
-    magnitude = ...
-    return magnitude
+    lower, upper = local_optima_bounds[f][optima_type][optima_number]
+    lower *= 1000
+    upper *= 1000
+    print(f'{lower = }, {upper = }')
+    index = np.argwhere((lower <= peaks_frequencies ) & (peaks_frequencies <= upper))[0][0]
+    return peaks_y[index]
 
 
 def plot_DI(optima_type: Literal["maxima", "minima"], optima_number: int):
@@ -106,31 +108,31 @@ def plot_DI(optima_type: Literal["maxima", "minima"], optima_number: int):
     fig, ax = plt.subplots(1, 1, figsize=(15, 8))
 
 
-fig, ax = plt.subplots(1, 1, figsize=(12, 10))
+# fig, ax = plt.subplots(1, 1, figsize=(12, 10))
 
-f = 180
-for cycle in relevant_cycles:
-    fc = frequency_collection(cycles=(cycle,), signal_types=('received',), frequency=f, paths=None, residual=False)
-    for i, s in enumerate(fc):
-        fs = s.sample_frequency
-        buttered_array = butter_lowpass(s.x, fs, order=20)
-        #buttered_array = s.x
-        buttered_fft = our_fft(buttered_array, fs, sigma=20)
-        if i == 0:
-            average_buttered_fft = buttered_fft
-        else:
-            average_buttered_fft += buttered_fft
-    average_buttered_fft /= (i + 1)
-    x_peaks, y_peaks = real_find_peaks(average_buttered_fft)
-    x_min, y_min = real_find_peaks((average_buttered_fft[0], -average_buttered_fft[1]))
-    ax.plot(x_peaks, y_peaks, "x")
-    ax.plot(x_min, -y_min, "x")
-    ax.plot(average_buttered_fft[0], average_buttered_fft[1], label=f'buttered cycle {cycle}, received, all paths, {f} kHz')
-    #unbuttered_fft = our_fft(s.x, fs)
-    #plt.plot(unbuttered_fft[0], unbuttered_fft[1], label=f'unbuttered Cycle {s.cycle}, {s.signal_type}, {s.emitter}-{s.receiver}, {s.frequency}')
+# f = 180
+# for cycle in relevant_cycles:
+#     fc = frequency_collection(cycles=(cycle,), signal_types=('received',), frequency=f, paths=None, residual=False)
+#     for i, s in enumerate(fc):
+#         fs = s.sample_frequency
+#         buttered_array = butter_lowpass(s.x, fs, order=20)
+#         #buttered_array = s.x
+#         buttered_fft = our_fft(buttered_array, fs, sigma=20)
+#         if i == 0:
+#             average_buttered_fft = buttered_fft
+#         else:
+#             average_buttered_fft += buttered_fft
+#     average_buttered_fft /= (i + 1)
+#     x_peaks, y_peaks = real_find_peaks(average_buttered_fft)
+#     x_min, y_min = real_find_peaks((average_buttered_fft[0], -average_buttered_fft[1]))
+#     ax.plot(x_peaks, y_peaks, "x")
+#     ax.plot(x_min, -y_min, "x")
+#     ax.plot(average_buttered_fft[0], average_buttered_fft[1], label=f'buttered cycle {cycle}, received, all paths, {f} kHz')
+#     #unbuttered_fft = our_fft(s.x, fs)
+#     #plt.plot(unbuttered_fft[0], unbuttered_fft[1], label=f'unbuttered Cycle {s.cycle}, {s.signal_type}, {s.emitter}-{s.receiver}, {s.frequency}')
 
 
 
-ax.legend()
-ax.set_xlim(0, 450000)
-plt.show()
+# ax.legend()
+# ax.set_xlim(0, 450000)
+# plt.show()
