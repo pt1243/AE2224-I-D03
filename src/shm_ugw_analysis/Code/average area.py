@@ -23,7 +23,7 @@ for i in allowed_frequencies:
 
 for i in range(5):
   # plt.subplot(6,1,i+1) 
-  plt.plot([int(u) for u in relevant_cycles], average[i])
+  plt.plot([int(u) for u in relevant_cycles], average[i]/6)
 plt.legend(['Frequency 100', 'Frequency 120', 'Frequency 140', 'Frequency 160', 'Frequency 180'])
 plt.xlabel("Cycle number")
 plt.ylabel("Magnitude")
