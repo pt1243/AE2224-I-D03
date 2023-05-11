@@ -20,7 +20,7 @@ from shm_ugw_analysis.stats_processing.welch_psd_peaks import plot_signal_collec
 
 from shm_ugw_analysis.stats_processing.peaks_damage_indices import search_peaks_arrays, generate_magnitude_array, plot_DI, plot_all_DIs
 
-plot_all_DIs()
+plot_all_DIs(use_dB=True)
 
 # fc = frequency_collection(('0'), ('received',), 100, paths=None)
 # for i, s in enumerate(fc):

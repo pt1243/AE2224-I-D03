@@ -14,6 +14,7 @@ from ..data_io.load_signals import (
     relevant_cycles,
     all_paths,
 )
+from ..data_io.paths import PLOT_DIR
 from .welch_psd_peaks import our_fft, butter_lowpass, real_find_peaks
 from typing import Literal, Optional
 import numpy as np
@@ -103,7 +104,7 @@ def search_peaks_arrays(peaks_frequencies: np.ndarray, peaks_y: np.ndarray, lowe
     return peaks_y[index]
 
 
-def generate_magnitude_array(optimum_type: Optimum, optimum_number: int, f: int):
+def generate_magnitude_array(optimum_type: Optimum, optimum_number: int, f: int, use_dB: bool = True):
     """For a given excitation frequency and optima, generate the arrays to be plotted of cycle numbers and the maxima
     as they vary per cycle.
     """
@@ -132,23 +133,30 @@ def generate_magnitude_array(optimum_type: Optimum, optimum_number: int, f: int)
         average_fft /= i + 1
 
         magnitude = search_peaks_arrays(average_fft[0], average_fft[1], lower, upper)
+        if not use_dB:
+            magnitude = 10**(magnitude/10)
 
-        labels_arr.append(f'Cycle {int(cycle)}')
+        labels_arr.append(cycle)
         optima_arr.append(magnitude)
     
     return labels_arr, optima_arr
 
 
-def plot_DI(optimum_type: Optimum, optimum_number: int, ax: Optional[Axes] = None):
+def plot_DI(optimum_type: Optimum, optimum_number: int, use_dB: bool = True, ax: Optional[Axes] = None):
     """Plot the damage index for a given optima type and location (eg. first minima)."""
     show_only_subplot = False
     if ax is None:
         fig, ax = plt.subplots(1, 1, figsize=(15, 8))
         show_only_subplot = True
     for f in allowed_frequencies:
-        labels_arr, optima_arr = generate_magnitude_array(optimum_type, optimum_number, f)
+        labels_arr, optima_arr = generate_magnitude_array(optimum_type, optimum_number, f, use_dB)
         ax.plot(labels_arr, optima_arr, label=f'{f} kHz, averaged over all paths')
     ax.set_title(f'{optimum_type.title()} {optimum_number}')
+    ax.set_xlabel(f'Cycle')
+    if use_dB:
+        ax.set_ylabel(f'Magnitude of {optimum_type} [dB]')
+    else:
+        ax.set_ylabel(f'Magnitude of {optimum_type} [-]')
     for label in ax.get_xticklabels():
         label.set_rotation(45)
         label.set_ha('right')
@@ -158,15 +166,17 @@ def plot_DI(optimum_type: Optimum, optimum_number: int, ax: Optional[Axes] = Non
     return
 
 
-def plot_all_DIs():
+def plot_all_DIs(use_dB: bool = True):
     """Plot all optima."""
-    fig, axs = plt.subplots(2, 4, figsize=(28, 8))
+    fig, axs = plt.subplots(2, 4, figsize=(24, 8))
     for i in range(3):
-        plot_DI("maximum", i+1, axs[0, i])
+        plot_DI("maximum", i+1, use_dB, axs[0, i])
     for i in range(4):
-        plot_DI("minimum", i+1, axs[1, i])
+        plot_DI("minimum", i+1, use_dB, axs[1, i])
     axs[0, -1].axis('off')
-    fig.tight_layout()
+    fig.tight_layout(pad=2)
     handles, labels = axs[0, 0].get_legend_handles_labels()
     fig.legend(handles, labels)
+    filepath = PLOT_DIR.joinpath(f"FFT Peaks all DIs, db = {use_dB}")
+    plt.savefig(filepath, dpi=500)
     plt.show()
