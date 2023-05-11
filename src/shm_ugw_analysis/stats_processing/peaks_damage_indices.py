@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+from matplotlib.axes import Axes
 from ..data_io.load_signals import (
     Signal,
     signal_collection,
@@ -14,18 +15,20 @@ from ..data_io.load_signals import (
     all_paths,
 )
 from .welch_psd_peaks import our_fft, butter_lowpass, real_find_peaks
-from typing import Literal
+from typing import Literal, Optional
 import numpy as np
 
 
-local_optima_bounds: dict[int, dict[str, dict[int, tuple[int, int]]]] = {
+Optimum = Literal["minimum", "maximum"]
+
+local_optima_bounds: dict[int, dict[Optimum, dict[int, tuple[int, int]]]] = {
     100: {
-        "maxima": {
+        "maximum": {
             1: (95, 105),
             2: (180, 190),
             3: (285, 295),
         },
-        "minima": {
+        "minimum": {
             1: (0, 15),
             2: (37.5, 45),
             3: (155, 165),
@@ -33,12 +36,12 @@ local_optima_bounds: dict[int, dict[str, dict[int, tuple[int, int]]]] = {
         },
     },
     120: {
-        "maxima": {
+        "maximum": {
             1: (115, 130),
             2: (220, 230),
             3: (345, 350),
         },
-        "minima": {
+        "minimum": {
             1: (0, 15),
             2: (42.5, 52.5),
             3: (185, 200),
@@ -46,12 +49,12 @@ local_optima_bounds: dict[int, dict[str, dict[int, tuple[int, int]]]] = {
         }
     },
     140: {
-        "maxima": {
+        "maximum": {
             1: (135, 145),
             2: (245, 260),
             3: (380, 410),
         },
-        "minima": {
+        "minimum": {
             1: (5, 15),
             2: (47.5, 57.5),
             3: (215, 230),
@@ -59,12 +62,12 @@ local_optima_bounds: dict[int, dict[str, dict[int, tuple[int, int]]]] = {
         }
     },
     160: {
-        "maxima": {
+        "maximum": {
             1: (150, 180),
             2: (265, 285),
             3: (420, 430),
         },
-        "minima": {
+        "minimum": {
             1: (5, 20),
             2: (50, 65),
             3: (230, 250),
@@ -72,12 +75,12 @@ local_optima_bounds: dict[int, dict[str, dict[int, tuple[int, int]]]] = {
         }
     },
     180: {
-        "maxima": {
+        "maximum": {
             1: (165, 185),
             2: (275, 290),
             3: (440, 455),
         },
-        "minima": {
+        "minimum": {
             1: None,
             2: (50, 72.5),
             3: (230, 260),
@@ -87,51 +90,80 @@ local_optima_bounds: dict[int, dict[str, dict[int, tuple[int, int]]]] = {
 }
 
 
-# local_optima_bounds[100]["maxima"][1] -> (lower, upper) or None if not well behaved
-
-
 def search_peaks_arrays(peaks_frequencies: np.ndarray, peaks_y: np.ndarray, lower: int | float, upper: int | float):
     """Search the peaks arrays for the given optima location and return the magnitude."""
     # print(f'{peaks_frequencies = }')
     # print(f'{peaks_y = }')
+    # convert to kHz
     lower *= 1000
     upper *= 1000
     # print(f'{lower = }, {upper = }')
+    # Locate maxima
     index = np.argwhere((lower <= peaks_frequencies ) & (peaks_frequencies <= upper))[0][0]
     return peaks_y[index]
 
 
-def plot_DI(optima_type: Literal["maxima", "minima"], optima_number: int):
-    """Plot the damage index for a given optima type and location (eg. first minima)."""
+def generate_magnitude_array(optimum_type: Optimum, optimum_number: int, f: int):
+    """For a given excitation frequency and optima, generate the arrays to be plotted of cycle numbers and the maxima
+    as they vary per cycle.
+    """
+    labels_arr = []
+    optima_arr = []
+
+    for cycle in relevant_cycles:
+        optimum_key = local_optima_bounds[f][optimum_type][optimum_number]
+
+        # skip optima which are not well behaved
+        if optimum_key is None:
+            continue
+        # unpack bounds
+        lower, upper = optimum_key
+
+        # average over paths
+        fc = frequency_collection((cycle,), ('received',), f, paths=None)
+        for i, s in enumerate(fc):
+            x = s.x
+            fs = s.sample_frequency
+            fft = our_fft(x, fs, sigma=20)
+            if i == 0:
+                average_fft = fft
+            else:
+                average_fft += fft
+        average_fft /= i + 1
+
+        magnitude = search_peaks_arrays(average_fft[0], average_fft[1], lower, upper)
+
+        labels_arr.append(f'Cycle {int(cycle)}')
+        optima_arr.append(magnitude)
     
-    fig, ax = plt.subplots(1, 1, figsize=(15, 8))
+    return labels_arr, optima_arr
 
 
-# fig, ax = plt.subplots(1, 1, figsize=(12, 10))
-
-# f = 180
-# for cycle in relevant_cycles:
-#     fc = frequency_collection(cycles=(cycle,), signal_types=('received',), frequency=f, paths=None, residual=False)
-#     for i, s in enumerate(fc):
-#         fs = s.sample_frequency
-#         buttered_array = butter_lowpass(s.x, fs, order=20)
-#         #buttered_array = s.x
-#         buttered_fft = our_fft(buttered_array, fs, sigma=20)
-#         if i == 0:
-#             average_buttered_fft = buttered_fft
-#         else:
-#             average_buttered_fft += buttered_fft
-#     average_buttered_fft /= (i + 1)
-#     x_peaks, y_peaks = real_find_peaks(average_buttered_fft)
-#     x_min, y_min = real_find_peaks((average_buttered_fft[0], -average_buttered_fft[1]))
-#     ax.plot(x_peaks, y_peaks, "x")
-#     ax.plot(x_min, -y_min, "x")
-#     ax.plot(average_buttered_fft[0], average_buttered_fft[1], label=f'buttered cycle {cycle}, received, all paths, {f} kHz')
-#     #unbuttered_fft = our_fft(s.x, fs)
-#     #plt.plot(unbuttered_fft[0], unbuttered_fft[1], label=f'unbuttered Cycle {s.cycle}, {s.signal_type}, {s.emitter}-{s.receiver}, {s.frequency}')
+def plot_DI(optimum_type: Optimum, optimum_number: int, ax: Optional[Axes] = None):
+    """Plot the damage index for a given optima type and location (eg. first minima)."""
+    if ax is None:
+        fig, ax = plt.subplots(1, 1, figsize=(15, 8))
+    for f in allowed_frequencies:
+        labels_arr, optima_arr = generate_magnitude_array(optimum_type, optimum_number, f)
+        ax.plot(labels_arr, optima_arr, label=f'{f} kHz, averaged over all paths')
+    ax.set_title(f'{optimum_type.title()} {optimum_number}')
+    for label in ax.get_xticklabels():
+        label.set_rotation(45)
+        label.set_ha('right')
+    if ax is None:
+        ax.legend()
+        plt.show()
 
 
-
-# ax.legend()
-# ax.set_xlim(0, 450000)
-# plt.show()
+def plot_all_DIs():
+    """Plot all optima."""
+    fig, axs = plt.subplots(2, 4, figsize=(28, 8))
+    for i in range(3):
+        plot_DI("maximum", i+1, axs[0, i])
+    for i in range(4):
+        plot_DI("minimum", i+1, axs[1, i])
+    axs[0, -1].axis('off')
+    fig.tight_layout()
+    handles, labels = axs[0, 0].get_legend_handles_labels()
+    fig.legend(handles, labels)
+    plt.show()
