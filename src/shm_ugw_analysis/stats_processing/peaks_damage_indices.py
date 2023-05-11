@@ -18,7 +18,7 @@ from typing import Literal
 import numpy as np
 
 
-local_optima_bounds = {
+local_optima_bounds: dict[int, dict[str, dict[int, tuple[int, int]]]] = {
     100: {
         "maxima": {
             1: (95, 105),
