@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from shm_ugw_analysis.data_io.signal import Signal
+from shm_ugw_analysis.data_io.load_signals import Signal
 
 
 
@@ -20,8 +20,8 @@ for c in range(10000,70001,10000):
     i_values=0
 
     for i in range(start,len(x)) :
-        max_value = np.max(np.abs(x[i:i+1000]))
-        if max_value<0.03:
+        max_value = np.max(np.abs(x[i:i+500]))
+        if max_value<0.01:
             i_values=i 
             break
 
