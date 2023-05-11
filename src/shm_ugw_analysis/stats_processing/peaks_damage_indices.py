@@ -21,7 +21,7 @@ import numpy as np
 
 Optimum = Literal["minimum", "maximum"]
 
-local_optima_bounds: dict[int, dict[Optimum, dict[int, tuple[int, int]]]] = {
+local_optima_bounds: dict[int, dict[Optimum, dict[int, tuple[int | float, int | float] | None]]] = {
     100: {
         "maximum": {
             1: (95, 105),
@@ -141,8 +141,10 @@ def generate_magnitude_array(optimum_type: Optimum, optimum_number: int, f: int)
 
 def plot_DI(optimum_type: Optimum, optimum_number: int, ax: Optional[Axes] = None):
     """Plot the damage index for a given optima type and location (eg. first minima)."""
+    show_only_subplot = False
     if ax is None:
         fig, ax = plt.subplots(1, 1, figsize=(15, 8))
+        show_only_subplot = True
     for f in allowed_frequencies:
         labels_arr, optima_arr = generate_magnitude_array(optimum_type, optimum_number, f)
         ax.plot(labels_arr, optima_arr, label=f'{f} kHz, averaged over all paths')
@@ -150,9 +152,10 @@ def plot_DI(optimum_type: Optimum, optimum_number: int, ax: Optional[Axes] = Non
     for label in ax.get_xticklabels():
         label.set_rotation(45)
         label.set_ha('right')
-    if ax is None:
+    if show_only_subplot:
         ax.legend()
         plt.show()
+    return
 
 
 def plot_all_DIs():
