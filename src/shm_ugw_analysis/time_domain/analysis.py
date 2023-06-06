@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import di_functions as di
+import .di_functions as di
 from shm_ugw_analysis.data_io.signal import Signal
 
 
