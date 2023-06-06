@@ -18,22 +18,75 @@ from shm_ugw_analysis.data_io.paths import PLOT_DIR
 
 from shm_ugw_analysis.stats_processing.welch_psd_peaks import plot_signal_collection_psd_peaks, calculate_coherence, plot_coherence, plot_coherence_3d, butter_lowpass, our_fft, plot_signal_collection_fft, real_find_peaks
 
-sb = Signal('0', 'received', 1, 4, 100)
-s1 = Signal('1000', 'received', 1, 4, 100)
-s2 = Signal('70000', 'received', 1, 4, 100)
+# sb = Signal('0', 'received', 1, 4, 100)
+# s1 = Signal('1000', 'received', 1, 4, 100)
+# s2 = Signal('70000', 'received', 1, 4, 100)
 # plot_psd_and_peaks(s, 4000)
 
-sc = signal_collection(
-    cycles=relevant_cycles,
-    signal_types=('received',),
-    emitters=(1, 2, 3),
-    receivers=(4, 5, 6),
-    frequencies=(180,),
-)
+# sc = signal_collection(
+#    cycles=relevant_cycles,
+#    signal_types=('received',),
+#    emitters=(1, 2, 3),
+#    receivers=(4, 5, 6),
+#    frequencies=(180,),
+#)
 
 #plot_signal_collection_psd_peaks(sc, bin_width=2000, file_label='changing_cycles')
 
-sc_coherence = signal_collection(
+# sc1 = signal_collection(
+#     cycles=('30000',),
+#     signal_types=('excitation',),
+#     emitters=(1,),
+#     receivers=(4,),
+#     frequencies=(100, 120, 140, 160, 180,),
+# )
+
+# plot_signal_collection_psd_peaks(sc1, bin_width=2000, file_label='excitation_changing_frequencies')
+
+# sc2 = signal_collection(
+#     cycles=relevant_cycles,
+#     signal_types=('excitation',),
+#     emitters=(1,),
+#     receivers=(4,),
+#     frequencies=(180,),
+# )
+
+# plot_signal_collection_psd_peaks(sc2, bin_width=2000, file_label='excitation_changing_cycles')
+
+
+# sc3 = signal_collection(
+#     cycles=('30000',),
+#     signal_types=('received',),
+#     emitters=(1,),
+#     receivers=(4,),
+#     frequencies=(100, 120, 140, 160, 180,),
+# )
+
+# plot_signal_collection_psd_peaks(sc3, bin_width=2000, file_label='receieved_changing_frequencies')
+
+# sc4 = signal_collection(
+#     cycles=relevant_cycles,
+#     signal_types=('received',),
+#     emitters=(1,),
+#     receivers=(4,),
+#     frequencies=(180,),
+# )
+
+# plot_signal_collection_psd_peaks(sc4, bin_width=2000, file_label='received_changing_cycles')
+
+
+# sc_coherence = signal_collection(
+#     cycles=relevant_cycles,
+#     signal_types=('excitation',),
+#     emitters=(1,),
+#     receivers=(4,),
+#     frequencies=(180,)
+# )
+
+# plot_coherence(sc_coherence, bin_width=4000, sigma=2)
+
+
+sc_4 = signal_collection(
     cycles=relevant_cycles,
     signal_types=('received',),
     emitters=(2,),
@@ -72,3 +125,5 @@ for cycle in relevant_cycles:
 ax.legend()
 ax.set_xlim(0, 450000)
 plt.show()
+
+# plot_signal_collection_psd_peaks(sc_4, bin_width=4000, file_label='residuals')
