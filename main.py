@@ -20,6 +20,21 @@ from shm_ugw_analysis.stats_processing.welch_psd_peaks import plot_signal_collec
 
 from shm_ugw_analysis.stats_processing.peaks_damage_indices import search_peaks_arrays, generate_magnitude_array, plot_DI, plot_all_DIs
 
+
+# sb = Signal('0', 'received', 1, 4, 100)
+# s1 = Signal('1000', 'received', 1, 4, 100)
+# s2 = Signal('70000', 'received', 1, 4, 100)
+# plot_psd_and_peaks(s, 4000)
+
+# sc = signal_collection(
+#    cycles=relevant_cycles,
+#    signal_types=('received',),
+#    emitters=(1, 2, 3),
+#    receivers=(4, 5, 6),
+#    frequencies=(180,),
+#)
+
+
 # plot_all_DIs(use_dB=True)
 
 # fc = frequency_collection(('0'), ('received',), 100, paths=None)
@@ -146,12 +161,76 @@ print(-y_min)
 # ax.plot(x_min, -y_min, "x")
 ax.plot(average_buttered_fft[0], average_buttered_fft[1], label='Unsmoothed signal FFT')
 
+# sc1 = signal_collection(
+#     cycles=('30000',),
+#     signal_types=('excitation',),
+#     emitters=(1,),
+#     receivers=(4,),
+#     frequencies=(100, 120, 140, 160, 180,),
+# )
+
+# plot_signal_collection_psd_peaks(sc1, bin_width=2000, file_label='excitation_changing_frequencies')
+
+# sc2 = signal_collection(
+#     cycles=relevant_cycles,
+#     signal_types=('excitation',),
+#     emitters=(1,),
+#     receivers=(4,),
+#     frequencies=(180,),
+# )
+
+# plot_signal_collection_psd_peaks(sc2, bin_width=2000, file_label='excitation_changing_cycles')
+
+
+# sc3 = signal_collection(
+#     cycles=('30000',),
+#     signal_types=('received',),
+#     emitters=(1,),
+#     receivers=(4,),
+#     frequencies=(100, 120, 140, 160, 180,),
+# )
+
+# plot_signal_collection_psd_peaks(sc3, bin_width=2000, file_label='receieved_changing_frequencies')
+
+# sc4 = signal_collection(
+#     cycles=relevant_cycles,
+#     signal_types=('received',),
+#     emitters=(1,),
+#     receivers=(4,),
+#     frequencies=(180,),
+# )
+
+# plot_signal_collection_psd_peaks(sc4, bin_width=2000, file_label='received_changing_cycles')
+
+
+# sc_coherence = signal_collection(
+#     cycles=relevant_cycles,
+#     signal_types=('excitation',),
+#     emitters=(1,),
+#     receivers=(4,),
+#     frequencies=(180,)
+# )
+
+# plot_coherence(sc_coherence, bin_width=4000, sigma=2)
+
+
+sc_4 = signal_collection(
+    cycles=relevant_cycles,
+    signal_types=('received',),
+    emitters=(2,),
+    receivers=(5,),
+    frequencies=(100,)
+)
 
 ax.legend(loc='lower left')
 ax.set_xlim(0, 450000)
+
 ax.set_ylim(-13, 7)
 ax.grid()
 ax.set_xlabel('Frequency [Hz]')
 ax.set_ylabel('Magnitude [dBV]')
 filepath = PLOT_DIR / 'unsmoothed.png'
 plt.savefig(filepath, dpi=500, bbox_inches='tight')
+plt.show()
+
+# plot_signal_collection_psd_peaks(sc_4, bin_width=4000, file_label='residuals')

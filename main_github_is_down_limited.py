@@ -78,8 +78,9 @@ for f in allowed_frequencies:
     print(f'Rendering plots for excitation frequency {f}...')
 
     ### ENVELOPE ###
-    upper_envelope = np.max(envelope_matrix, axis=0)
-    lower_envelope = np.min(envelope_matrix[1:, :], axis=0)
+    envelope_matrix_intermediate = np.vstack([envelope_matrix[4], envelope_matrix[6], envelope_matrix[8]])
+    upper_envelope = np.max(envelope_matrix_intermediate, axis=0)
+    lower_envelope = np.min(envelope_matrix_intermediate[:, :], axis=0)
     ax.plot(average_fft_array[0], upper_envelope, color='#030aa7', label='Upper envelope', linestyle='dashed')
     ax.plot(average_fft_array[0], lower_envelope, color='#00ff00', label='Lower envelope', linestyle='dashdot')
     # Entire Range:
@@ -104,35 +105,33 @@ for f in allowed_frequencies:
     # color='#ffdb00'
     # color='#ffce00'
 
-    ax.fill_between(average_fft_array[0], envelope_matrix[0, :], envelope_matrix[2, :], color='#e5f614', label='Layer 1: 0 - 1,000 cycles')
-    ax.fill_between(average_fft_array[0], envelope_matrix[2, :], envelope_matrix[5, :], color='#f8cb0f', label='Layer 2: 10,000 - 30,000 cycles')
-    ax.fill_between(average_fft_array[0], envelope_matrix[5, :], envelope_matrix[7, :], color='#fa8b0a', label='Layer 3: 40,000 - 50,000 cycles')
-    ax.fill_between(average_fft_array[0], envelope_matrix[7, :], envelope_matrix[9, :], color='#ff0000', label='Layer 4: 60,000 - 70,000 cycles')
-
+    ax.fill_between(average_fft_array[0], envelope_matrix[4, :], envelope_matrix[6, :], color='#e5f614', label='Layer 1: 20,000 - 40,000 cycles')
+    ax.fill_between(average_fft_array[0], envelope_matrix[6, :], envelope_matrix[8, :], color='#fa8b0a', label='Layer 2: 40,000 - 60,000 cycles')
+    
     ### PLOTTING PARAMETERS ###
     ax.legend()
     #ax.set_title(f'FFT - Excitation Frequency {f} kHz, Received, All Paths (Averaged), All Cycles, residual=True')
     ax.set_xlabel('Frequency [Hz]')
-    ax.set_ylabel('Magnitude [dBV]')
+    ax.set_ylabel('Magnitude [dB]')
     ax.set_xlim(0, 450_000)
     ax.set_ylim(-13, 6)
-    file_path = os.path.join(PLOT_DIR, f'FFT - Excitation Frequency {f} kHz, Received, All Paths (Averaged), All Cycles, residual=True')
-    plt.savefig(file_path, dpi=500, bbox_inches='tight')
-    #plt.show()
-    #plt.clf()
-    #plt.close()
+    file_path = os.path.join(PLOT_DIR, f'FFT - Excitation Frequency {f} kHz, Received, All Paths (Averaged), All Cycles, residual=False')
+    #plt.savefig(file_path, dpi=500, bbox_inches='tight')
+    plt.show()
+    plt.clf()
+    plt.close()
 
 ############################################
 ### VARYING FREQUENCIES, CONSTANT CYCLES ###
 ############################################
-
+'''
 for cycle in relevant_cycles:
     fig, ax = plt.subplots(1, 1, figsize=(12, 10))
     # col = 25001
     # 12501 full freq range
     envelope_matrix = np.empty([len(allowed_frequencies), 2250])
     for row_index, frequency in enumerate(allowed_frequencies):
-        sc = signal_collection(cycles=(cycle,), signal_types=('received',), frequencies=(frequency,), emitters=allowed_emitters, receivers=allowed_receivers, residual=True)
+        sc = signal_collection(cycles=(cycle,), signal_types=('received',), frequencies=(frequency,), emitters=allowed_emitters, receivers=allowed_receivers, residual=False)
         for i, s in enumerate(sc):
             fs = s.sample_frequency
             fft_array = our_fft(s.x, fs, sigma=20)
@@ -158,8 +157,8 @@ for cycle in relevant_cycles:
     ### ENVELOPE ###
     upper_envelope = np.max(envelope_matrix, axis=0)
     lower_envelope = np.min(envelope_matrix, axis=0)
-    ax.plot(average_fft_array[0], upper_envelope, color='#030aa7', label='Upper envelope', linestyle='dashed')
-    ax.plot(average_fft_array[0], lower_envelope, color='#00ff00', label='Lower envelope', linestyle='dashdot')
+    ax.plot(average_fft_array[0], upper_envelope, color='#030aa7', label='Upper Envelope', linestyle='dashed')
+    ax.plot(average_fft_array[0], lower_envelope, color='#00ff00', label='Lower Envelope', linestyle='dashdot')
     # Entire Range:
     #ax.fill_between(average_fft_array[0], lower_envelope, upper_envelope, color='#8cffdb')
 
@@ -169,18 +168,19 @@ for cycle in relevant_cycles:
     # Layer 3: 140-160 kHz
     # Layer 4: 160-180 kHz
 
-    ax.fill_between(average_fft_array[0], envelope_matrix[0, :], envelope_matrix[1, :], color='#e5f614', label='Layer 1: 100 - 120 kHz')
-    ax.fill_between(average_fft_array[0], envelope_matrix[1, :], envelope_matrix[2, :], color='#f8cb0f', label='Layer 2: 120 - 140 kHz')
-    ax.fill_between(average_fft_array[0], envelope_matrix[2, :], envelope_matrix[3, :], color='#fa8b0a', label='Layer 3: 140 - 160 kHz')
-    ax.fill_between(average_fft_array[0], envelope_matrix[3, :], envelope_matrix[4, :], color='#ff0000', label='Layer 4: 160 - 180 kHz')
+    ax.fill_between(average_fft_array[0], envelope_matrix[0, :], envelope_matrix[1, :], color='#e5f614', label='Layer 1: 100-120kHz')
+    ax.fill_between(average_fft_array[0], envelope_matrix[1, :], envelope_matrix[2, :], color='#f8cb0f', label='Layer 2: 120-140kHz')
+    ax.fill_between(average_fft_array[0], envelope_matrix[2, :], envelope_matrix[3, :], color='#fa8b0a', label='Layer 3: 140-160kHz')
+    ax.fill_between(average_fft_array[0], envelope_matrix[3, :], envelope_matrix[4, :], color='#ff0000', label='Layer 4: 160-180kHz')
     
     ### PLOTTING PARAMETERS ###
     ax.legend()
     #ax.set_title(f'FFT - Cycle {cycle}, Received, All Paths (Averaged), All Excitation Frequencies, residual=True')
     ax.set_xlabel('Frequency [Hz]')
-    ax.set_ylabel('Magnitude [dBV]')
-    file_path = os.path.join(PLOT_DIR, f'FFT - Cycle {cycle}, Received, All Paths (Averaged), All Excitation Frequencies, residual=True')
-    plt.savefig(file_path, dpi=500, bbox_inches='tight')
+    ax.set_ylabel('Magnitude [dB]')
+    file_path = os.path.join(PLOT_DIR, f'FFT - Cycle {cycle}, Received, All Paths (Averaged), All Excitation Frequencies, residual=False')
+    #plt.savefig(file_path, dpi=500, bbox_inches='tight')
     #plt.show()
     #plt.clf()
     #plt.close()
+    '''
