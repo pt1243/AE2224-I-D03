@@ -17,7 +17,7 @@ from shm_ugw_analysis.data_io.load_signals import (
 )
 from shm_ugw_analysis.data_io.paths import PLOT_DIR
 
-from shm_ugw_analysis.stats_processing.welch_psd_peaks import plot_signal_collection_psd_peaks, calculate_coherence, plot_coherence, plot_coherence_3d, butter_lowpass, our_fft, plot_signal_collection_fft, real_find_peaks
+from shm_ugw_analysis.frequency_domain.welch_psd_peaks import plot_signal_collection_psd_peaks, calculate_coherence, plot_coherence, plot_coherence_3d, butter_lowpass, our_fft, plot_signal_collection_fft, real_find_peaks
 
 sb = Signal('0', 'received', 1, 4, 100)
 s1 = Signal('1000', 'received', 1, 4, 100)
