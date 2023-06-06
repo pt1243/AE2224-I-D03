@@ -1,8 +1,6 @@
 import numpy as np
 
 
-
-
 def basic_stats_summary(y):
     mean = np.mean(y)
     mean_square = np.mean(y**2)

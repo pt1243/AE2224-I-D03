@@ -1,5 +1,5 @@
 
-import src.shm_ugw_analysis.data_io.loads_signals as ssumdl
+import src.shm_ugw_analysis.data_io.load_signals as ssumdl
 import numpy as np 
 import basic_stats_method as bm
 
