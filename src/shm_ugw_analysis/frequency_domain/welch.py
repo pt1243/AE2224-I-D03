@@ -7,11 +7,11 @@ from scipy.signal import savgol_filter, welch, hilbert, find_peaks, find_peaks_c
 from scipy import ndimage
 import os
 import pandas as pd
-from shm_ugw_analysis.data_io.load import load_data, allowed_emitters, allowed_receivers, allowed_frequencies
-from shm_ugw_analysis.data_io.load_signals import Signal, signal_collection
-from shm_ugw_analysis.data_io.paths import ROOT_DIR
+from ..data_io.load_signals import load_data, allowed_emitters, allowed_receivers, allowed_frequencies
+from ..data_io.load_signals import Signal, signal_collection
+from ..data_io.paths import ROOT_DIR
 import pathlib
-from numpy.fft import fft, fftfreq, fftshift
+from numpy.fft import fft, fftfreq, fftshift  # type: ignore
 from matplotlib.ticker import ScalarFormatter
 
 PLOT_DIR = ROOT_DIR.joinpath('plots')

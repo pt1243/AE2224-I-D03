@@ -4,7 +4,7 @@ import glob
 from scipy.io import loadmat
 import numpy as np
 
-from shm_ugw_analysis.data_io.paths import MAT_DIR, NPZ_DIR
+from .paths import MAT_DIR, NPZ_DIR
 
 
 def main():

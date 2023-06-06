@@ -1,7 +1,7 @@
 
-import src.shm_ugw_analysis.data_io.load_signals as ssumdl
+from ..data_io.load_signals import load_data
 import numpy as np 
-import basic_stats_method as bm
+from .basic_stats_method import basic_stats_summary
 
 
 
@@ -12,6 +12,6 @@ folder = ""
 filename = ""
 full_path = ""
 
-x, t, desc, folder, filename, full_path = ssumdl.load_data('1', 'excitation', 1, 4, 120)
-print(bm.basic_stats_summary(x))
+x, t, desc, folder, filename, full_path = load_data('1', 'excitation', 1, 4, 120)
+print(basic_stats_summary(x))
 print(full_path)

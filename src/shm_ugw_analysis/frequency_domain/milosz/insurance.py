@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy import signal
 import scipy as sp
-from shm_ugw_analysis.data_io.load_signals import Signal, signal_collection
+from ...data_io.load_signals import Signal, signal_collection
 from scipy.signal import savgol_filter
 import os
 import pandas as pd

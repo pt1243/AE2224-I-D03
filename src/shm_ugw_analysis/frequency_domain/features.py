@@ -10,7 +10,7 @@ import statsmodels.api as sm
 from statsmodels.tsa.api import VAR
 import pandas
 from patsy import dmatrices
-from data_io.load import load_data
+from ..data_io.load_signals import load_data
 import matplotlib.pyplot as plt
 import numpy as np
 import statsmodels.graphics.tsaplots as SMGT
@@ -160,7 +160,7 @@ t_2, x_2, _ = load_data(
     receiver=6,
     frequency=140
 )
-'''
+
 matrix = np.empty
 index = np.empty
 for i in range(1, len(cycles)-1):
@@ -239,3 +239,4 @@ SMGT.plot_acf(x_0_r_1_6_100[a_0_r_1_6_100:b_0_r_1_6_100], ax=axs[2,1])
 axs[2,1].set_title('RECEIVED 1-6 100kHz')
 
 #plt.show()
+'''

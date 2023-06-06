@@ -1,3 +1,7 @@
+from ..data_io.load_signals import load_data
+import numpy as np
+import matplotlib.pyplot as plt
+
 #Rendered using Chat-GPT 
 
 cycle = '0'

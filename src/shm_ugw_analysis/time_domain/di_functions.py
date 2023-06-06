@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from shm_ugw_analysis.data_io.signal import Signal
+from ..data_io.load_signals import Signal
 
 
 def data(cycle='0', emitter=1, receiver=4, frequency=100):

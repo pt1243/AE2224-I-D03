@@ -1,7 +1,7 @@
 import numpy as np
 from scipy import signal
 import matplotlib.pyplot as plt
-from shm_ugw_analysis.data_io.load_signals import load_data
+from ..data_io.load_signals import load_data
 
 emitter = [1, 2, 3]
 #convert list to numpy array

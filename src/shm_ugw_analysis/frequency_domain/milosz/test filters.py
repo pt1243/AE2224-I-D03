@@ -7,7 +7,7 @@ from scipy.signal import savgol_filter
 import os
 import pandas as pd
 import statsmodels.api as sm
-from paths import NPZ_DIR
+from ...data_io.paths import NPZ_DIR
 
 
 def load_npz(filename):

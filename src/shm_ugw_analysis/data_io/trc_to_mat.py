@@ -3,7 +3,7 @@ import pathlib
 
 import matlab.engine
 
-from shm_ugw_analysis.data_io.paths import MAT_DIR, RAW_DATA_DIR
+from .paths import MAT_DIR, RAW_DATA_DIR
 
 
 def main():

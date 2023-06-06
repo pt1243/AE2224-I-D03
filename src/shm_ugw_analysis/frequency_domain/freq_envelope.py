@@ -6,7 +6,7 @@ import scipy as sp
 from scipy.signal import savgol_filter
 import os
 import pandas as pd
-from data_io.load import load_data
+from ..data_io.load_signals import load_data
 frequency = 100
 emitter = [1, 2, 3]
 #convert list to numpy array

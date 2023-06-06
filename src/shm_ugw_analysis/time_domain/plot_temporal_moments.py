@@ -1,8 +1,8 @@
 import matplotlib.pyplot as plt
 
-from shm_ugw_analysis.stats_processing.temporal_moments import E, T, D, A_e, S_t_3, S, K_t_4, K
-from shm_ugw_analysis.data_io.load_signals import signal_collection
-from shm_ugw_analysis.data_io.paths import ROOT_DIR
+from .temporal_moments import E, T, D, A_e, S_t_3, S, K_t_4, K
+from ..data_io.load_signals import signal_collection
+from ..data_io.paths import ROOT_DIR
 
 sc = signal_collection(
     cycles=['0', '1', '1000', '10000', '20000', '30000', '40000', '50000', '60000', '70000'],
