@@ -20,7 +20,7 @@ from shm_ugw_analysis.stats_processing.welch_psd_peaks import plot_signal_collec
 
 from shm_ugw_analysis.stats_processing.peaks_damage_indices import search_peaks_arrays, generate_magnitude_array, plot_DI, plot_all_DIs
 
-plot_all_DIs(use_dB=True)
+# plot_all_DIs(use_dB=True)
 
 # fc = frequency_collection(('0'), ('received',), 100, paths=None)
 # for i, s in enumerate(fc):
@@ -40,9 +40,9 @@ plot_all_DIs(use_dB=True)
 # print(repr(y_min))
 
 
-# fig, ax = plt.subplots(1, 1, figsize=(12, 10))
+fig, ax = plt.subplots(1, 1, figsize=(8, 8))
 
-# f = 100
+f = 100
 # for cycle in relevant_cycles:
 #     fc = frequency_collection(cycles=(cycle,), signal_types=('received',), frequency=f, paths=None, residual=False)
 #     for i, s in enumerate(fc):
@@ -65,8 +65,51 @@ plot_all_DIs(use_dB=True)
 #     #plt.plot(unbuttered_fft[0], unbuttered_fft[1], label=f'unbuttered Cycle {s.cycle}, {s.signal_type}, {s.emitter}-{s.receiver}, {s.frequency}')
 
 
-# ax.legend()
-# ax.set_xlim(0, 450000)
+cycle = '1'
+
+fc = frequency_collection(cycles=(cycle,), signal_types=('received',), frequency=f, paths=None, residual=False)
+for i, s in enumerate(fc):
+    fs = s.sample_frequency
+    # buttered_array = butter_lowpass(s.x, fs, order=20)
+    buttered_array = s.x
+    buttered_fft = our_fft(buttered_array, fs, sigma=20)
+    if i == 0:
+        average_buttered_fft = buttered_fft
+    else:
+        average_buttered_fft += buttered_fft
+average_buttered_fft /= (i + 1)
+x_peaks, y_peaks = real_find_peaks(average_buttered_fft)
+print(x_peaks)
+print(y_peaks)
+x_min, y_min = real_find_peaks((average_buttered_fft[0], -average_buttered_fft[1]))
+print(x_min)
+print(-y_min)
+
+# ax.plot(x_peaks, y_peaks, "x")
+# ax.plot(x_min, -y_min, "x")
+ax.plot(average_buttered_fft[0], average_buttered_fft[1], label='Smoothed signal FFT')
+
+optima = {
+    "First minimum": (10599.57601696, -1.47720732, 'p'),
+    "Second minimum": (41198.35206592, -3.8851639, '*'),
+    "First maximum": (101995.92016319, 6.01553543, 'o'),
+    "Third minimum": (161793.52825887, -5.89043866, '+'),
+    "Second maximum": (187792.48830047, -0.73183618, 'v'),
+    "Fourth minimum": (223191.07235711, -8.28273189, 'x'),
+    "Third maximum": (290188.3924643, 0.02122642, '^'),
+}
+
+for k, v in optima.items():
+    ax.plot(v[0], v[1], v[2], mew=2, ms=8, label=k)
+
+ax.legend(loc='lower left')
+ax.set_xlim(0, 450000)
+ax.set_ylim(-13, 7)
+ax.grid()
+ax.set_xlabel('Frequency [Hz]')
+ax.set_ylabel('Magnitude [dBV]')
+filepath = PLOT_DIR / 'smoothed.png'
+plt.savefig(filepath, dpi=500, bbox_inches='tight')
 # plt.show()
 
 # y_peaks = np.array([ 0.33249576,  2.57209416,  5.0102436 ,  7.44287459,  7.19390225, 10.77036642])
@@ -76,3 +119,39 @@ plot_all_DIs(use_dB=True)
 # mag = search_peaks_arrays(100, 'minima', 2, frequency_array, y_peaks)
 
 # print(mag)
+
+plt.clf()
+plt.close()
+
+fig, ax = plt.subplots(1, 1, figsize=(8, 8))
+fc = frequency_collection(cycles=(cycle,), signal_types=('received',), frequency=f, paths=None, residual=False)
+for i, s in enumerate(fc):
+    fs = s.sample_frequency
+    # buttered_array = butter_lowpass(s.x, fs, order=20)
+    buttered_array = s.x
+    buttered_fft = our_fft(buttered_array, fs, sigma=1e-6)
+    if i == 0:
+        average_buttered_fft = buttered_fft
+    else:
+        average_buttered_fft += buttered_fft
+average_buttered_fft /= (i + 1)
+x_peaks, y_peaks = real_find_peaks(average_buttered_fft)
+print(x_peaks)
+print(y_peaks)
+x_min, y_min = real_find_peaks((average_buttered_fft[0], -average_buttered_fft[1]))
+print(x_min)
+print(-y_min)
+
+# ax.plot(x_peaks, y_peaks, "x")
+# ax.plot(x_min, -y_min, "x")
+ax.plot(average_buttered_fft[0], average_buttered_fft[1], label='Unsmoothed signal FFT')
+
+
+ax.legend(loc='lower left')
+ax.set_xlim(0, 450000)
+ax.set_ylim(-13, 7)
+ax.grid()
+ax.set_xlabel('Frequency [Hz]')
+ax.set_ylabel('Magnitude [dBV]')
+filepath = PLOT_DIR / 'unsmoothed.png'
+plt.savefig(filepath, dpi=500, bbox_inches='tight')

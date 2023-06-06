@@ -144,39 +144,48 @@ def generate_magnitude_array(optimum_type: Optimum, optimum_number: int, f: int,
 
 def plot_DI(optimum_type: Optimum, optimum_number: int, use_dB: bool = True, ax: Optional[Axes] = None):
     """Plot the damage index for a given optima type and location (eg. first minima)."""
+    linestyles = {
+        100: 'solid',
+        120: 'dotted',
+        140: 'dashed',
+        160: 'dashdot',
+        180: (5, (10, 3)),
+    }
     show_only_subplot = False
     if ax is None:
-        fig, ax = plt.subplots(1, 1, figsize=(15, 8))
+        fig, ax = plt.subplots(1, 1, figsize=(8, 8))
         show_only_subplot = True
     for f in allowed_frequencies:
         labels_arr, optima_arr = generate_magnitude_array(optimum_type, optimum_number, f, use_dB)
-        ax.plot(labels_arr, optima_arr, label=f'{f} kHz, averaged over all paths')
+        ax.plot(labels_arr, optima_arr, label=f'{f} kHz, averaged over all paths', linestyle=linestyles[f])
     ax.set_title(f'{optimum_type.title()} {optimum_number}')
     ax.set_xlabel(f'Cycle')
     if use_dB:
-        ax.set_ylabel(f'Magnitude of {optimum_type} [dB]')
+        ax.set_ylabel(f'Magnitude [dBV]')
     else:
-        ax.set_ylabel(f'Magnitude of {optimum_type} [-]')
+        ax.set_ylabel(f'Magnitude [V]')
     for label in ax.get_xticklabels():
         label.set_rotation(45)
         label.set_ha('right')
     if show_only_subplot:
         ax.legend()
+        filepath = PLOT_DIR / f'DI_{optimum_type}_{optimum_number}.png'
+        plt.savefig(filepath, dpi=500, bbox_inches='tight')
         plt.show()
     return
 
 
 def plot_all_DIs(use_dB: bool = True):
     """Plot all optima."""
-    fig, axs = plt.subplots(2, 4, figsize=(24, 8))
+    fig, axs = plt.subplots(4, 2, figsize=(12, 18))
     for i in range(3):
-        plot_DI("maximum", i+1, use_dB, axs[0, i])
+        plot_DI("maximum", i+1, use_dB, axs[i, 0])
     for i in range(4):
-        plot_DI("minimum", i+1, use_dB, axs[1, i])
-    axs[0, -1].axis('off')
-    fig.tight_layout(pad=2)
+        plot_DI("minimum", i+1, use_dB, axs[i, 1])
+    axs[-1, 0].axis('off')
+    fig.subplots_adjust(hspace=0.4, wspace=0.2)
     handles, labels = axs[0, 0].get_legend_handles_labels()
-    fig.legend(handles, labels)
+    fig.legend(handles, labels, loc='lower left', bbox_to_anchor=(0.1, 0.1))
     filepath = PLOT_DIR.joinpath(f"FFT Peaks all DIs, db = {use_dB}")
-    plt.savefig(filepath, dpi=500)
-    plt.show()
+    plt.savefig(filepath, dpi=500, bbox_inches='tight')
+    # plt.show()
