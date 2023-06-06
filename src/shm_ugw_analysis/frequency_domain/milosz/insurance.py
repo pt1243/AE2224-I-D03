@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy import signal
 import scipy as sp
-from shm_ugw_analysis.data_io.signal import Signal, signal_collection
+from shm_ugw_analysis.data_io.load_signals import Signal, signal_collection
 from scipy.signal import savgol_filter
 import os
 import pandas as pd
@@ -48,12 +48,12 @@ for h in range(0, len(cycles)):
                     max = 0
                     index = 0
                     for i in range(0, len(Mag)):
-                        if freq[i] > frequency[j]-20)*10**3 and freq[i] < (frequency[j]+20)*10**3:
-                            if mag[i] > max
-                                max = mag[i]
+                        if freq[i] > (frequency[j]-20)*10**3 and freq[i] < (frequency[j]+20)*10**3:
+                            if Mag[i] > max:
+                                max = Mag[i]
                                 index = i
                     return max, index
-                        counter += 1
+                    counter += 1
                 #numerical integration of fft using trapezoid rule
                 
                 #compute power spectral density (PSD ) of x_std
