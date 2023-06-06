@@ -1,7 +1,7 @@
 import numpy as np
 from scipy import signal
 import matplotlib.pyplot as plt
-from shm_ugw_analysis.data_io.load import load_data
+from shm_ugw_analysis.data_io.load_signals import load_data
 import pywt 
 from matplotlib.colors import ListedColormap
 #import os

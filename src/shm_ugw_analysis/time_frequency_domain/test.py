@@ -1,4 +1,4 @@
-from shm_ugw_analysis.data_io.load import load_data
+from shm_ugw_analysis.data_io.load_signals import load_data
 import numpy as np
 import pywt
 import matplotlib.pyplot as plt
