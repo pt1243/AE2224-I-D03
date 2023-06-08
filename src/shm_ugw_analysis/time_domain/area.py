@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from ..data_io.load_signals import Signal, all_paths, relevant_cycles
+from shm_ugw_analysis.data_io.load_signals import Signal, all_paths, relevant_cycles
 
 relevant_cycles = relevant_cycles[-7:]
 average = np.zeros((6,7))
@@ -24,13 +24,13 @@ for p1, p2 in all_paths:
     #plt.plot(cycle_numbers,results)
     #plt.title(f'{p1},{p2}')
 
-
+markers = ['+', 'o', (5,2), '>', (4,0), (5,1)]
 for i in range(6):
   # plt.subplot(6,1,i+1) 
-  plt.plot([int(u) for u in relevant_cycles], average[i])
+  plt.plot([int(u) for u in relevant_cycles], average[i], marker=markers[i])
 plt.legend(['Emitter 1', 'Emitter 2', 'Emitter 3', 'Emitter 4', 'Emitter 5', 'Emitter 6'])
 plt.xlabel("Cycle number")
-plt.ylabel("Magnitude")
+plt.ylabel("Energy")
 
 
 

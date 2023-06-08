@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from ..data_io.load_signals import Signal, all_paths, relevant_cycles, allowed_frequencies
+from shm_ugw_analysis.data_io.load_signals import Signal, all_paths, relevant_cycles, allowed_frequencies
 
 relevant_cycles = relevant_cycles[-7:]
 average = np.zeros((5,7))

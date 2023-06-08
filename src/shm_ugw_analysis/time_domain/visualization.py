@@ -1,25 +1,30 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from ..data_io.load_signals import Signal
+from shm_ugw_analysis.data_io.load_signals import Signal
 
 
-s = Signal('70000', 'received', 2, 5, 100)
+s = Signal('70000', 'received', 2, 5, 180)
 x, t = s.x, s.t
 x = x - x.mean()
 
-s0 = Signal('0', 'received', 2, 5, 180)
-x0, t0 = s0.x, s0.t
-x0 = x0 - x0.mean()
+s1 = Signal('10000', 'received', 2, 5, 180)
+x1, t1 = s1.x, s1.t
+x1 = x1 - x1.mean()
 
-xr = x - x0
+s3 = Signal('40000', 'received', 2, 5, 180)
+x3, t3 = s3.x, s3.t
+x3 = x3 - x3.mean()
 
-start, end = np.searchsorted(t, -0.5e-5), np.searchsorted(t, 5e-5)
+#xr = x - x0
+
+start, end = np.searchsorted(t, 1.111111111111111111e-5), np.searchsorted(t, 5e-5)
+plt.xlabel("Time (s)")
+plt.ylabel("Amplitude (V)")
+#plt.axvline(x=t[start], color='blue', linestyle='--')
+#plt.axvline(x=t[start+500], color='blue', linestyle='--')
+plt.plot(t[start:end], x1[start:end])
+plt.plot(t[start:end], x3[start:end])
 plt.plot(t[start:end], x[start:end])
-# plt.plot(t[start:end], x0[start:end])
-# plt.plot(t[start:end], xr[start:end])
-# plt.axvline(x=t[start], color='blue', linestyle='--')
-# plt.axvline(x=t[start+500], color='blue', linestyle='--')
-# plt.plot(t, x)
-# plt.plot(t, xr)
-# plt.plot(t, x0)
+plt.legend(["10,000 cycles","40,000 cycles","70,000 cycles"])
+#plt.plot(t, x0)
 plt.show()
