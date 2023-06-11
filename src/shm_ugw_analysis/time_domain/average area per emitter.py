@@ -19,14 +19,14 @@ for i in allowed_frequencies:
         average[int((i-100)/20)] += np.array(results)
     
 
-
+markers = ['+', 'o', (5,2), '>', (4,0), (5,1)]
 for i in range(5):
   # plt.subplot(6,1,i+1) 
-  plt.plot([int(u) for u in relevant_cycles], average[i])
-plt.legend(['Frequency 100', 'Frequency 120', 'Frequency 140', 'Frequency 160', 'Frequency 180'])
+  plt.plot([int(u) for u in relevant_cycles], average[i], marker=markers[i])
+plt.legend(['100 kHz', '120 kHz', '140 kHz', '160 kHz', '180 kHz'],loc="upper left")
 plt.xlabel("Cycle number")
-plt.ylabel("Magnitude")
-
+plt.ylabel("Energy [$V^2$]")
+plt.savefig("plots/Averaged Paths per Frequency", dpi=500)
 
 
 #for c in range(10000,70001,10000):

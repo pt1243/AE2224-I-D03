@@ -30,8 +30,8 @@ for i in range(6):
   plt.plot([int(u) for u in relevant_cycles], average[i], marker=markers[i])
 plt.legend(['Emitter 1', 'Emitter 2', 'Emitter 3', 'Emitter 4', 'Emitter 5', 'Emitter 6'])
 plt.xlabel("Cycle number")
-plt.ylabel("Energy")
-
+plt.ylabel("Energy [$V^2$]")
+plt.savefig("plots/Averaged Paths 180 Hz", dpi=500)
 
 
 #for c in range(10000,70001,10000):
