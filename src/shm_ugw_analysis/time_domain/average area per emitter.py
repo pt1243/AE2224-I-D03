@@ -13,7 +13,7 @@ for i in allowed_frequencies:
             x, t = s.x, s.t
             x=x-x.mean()
 
-            start, end = np.searchsorted(t, 1e-5), np.searchsorted(t, 5e-5)
+            start, end = np.searchsorted(t, 2e-3/i), np.searchsorted(t, 2e-3/i + 4e-5)
             results.append(np.sum(x[start:end]**2))
         
         average[int((i-100)/20)] += np.array(results)

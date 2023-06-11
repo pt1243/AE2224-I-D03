@@ -11,10 +11,9 @@ for p1, p2 in all_paths:
     for c in relevant_cycles:
         s = Signal(c, 'received', p1, p2, 180)
         x, t = s.x, s.t
-        x=x-x.mean()
+        x = x-x.mean()
 
-
-        start, end = np.searchsorted(t, 1e-5), np.searchsorted(t, 5e-5)
+        start, end = np.searchsorted(t, 2e-3/180), np.searchsorted(t, 2e-3/180 + 4e-5)
         cycle_numbers.append(int(c))
         results.append(np.sum(x[start:end]**2))
     

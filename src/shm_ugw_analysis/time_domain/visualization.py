@@ -17,7 +17,7 @@ x3 = x3 - x3.mean()
 
 #xr = x - x0
 
-start, end = np.searchsorted(t, 1.111111111111111111e-5), np.searchsorted(t, 5e-5)
+start, end = np.searchsorted(t, 2e-3/180), np.searchsorted(t, 2e-3/180 + 4e-5)
 plt.figure(figsize=[1.5*6.4, 4.8*1.5])
 plt.xlabel("Time [s]")
 plt.ylabel("Amplitude [V]")
@@ -26,7 +26,7 @@ plt.ylabel("Amplitude [V]")
 plt.plot(t[start:end], x1[start:end])
 plt.plot(t[start:end], x3[start:end])
 plt.plot(t[start:end], x[start:end])
-plt.legend(["10,000 cycles","40,000 cycles","70,000 cycles"])
+plt.legend(["10,000 cycles", "40,000 cycles", "70,000 cycles"])
 #plt.plot(t, x0)
 plt.savefig("plots/cycles", dpi=500)
 plt.show()
