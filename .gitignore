@@ -1,6 +1,5 @@
 # Data directory
-data/L2_S2/
-data/matlab_files/
+data
 
 # Plots
 plots
