@@ -151,14 +151,31 @@ def plot_DI(optimum_type: Optimum, optimum_number: int, use_dB: bool = True, ax:
         160: 'dashdot',
         180: (5, (10, 3)),
     }
+    label_mapping = {
+        0: '0',
+        1: '1',
+        2: '1,000',
+        3: '10,000',
+        4: '20,000',
+        5: '30,000',
+        6: '40,000',
+        7: '50,000',
+        8: '60,000',
+        9: '70,000',
+    }
     show_only_subplot = False
     if ax is None:
         fig, ax = plt.subplots(1, 1, figsize=(8, 8))
         show_only_subplot = True
+    def handle_tick_errors(x, pos):
+        try:
+            return label_mapping[pos]
+        except KeyError:
+            return
+    ax.xaxis.set_major_formatter(handle_tick_errors)
     for f in allowed_frequencies:
         labels_arr, optima_arr = generate_magnitude_array(optimum_type, optimum_number, f, use_dB)
         ax.plot(labels_arr, optima_arr, label=f'{f} kHz, averaged over all paths', linestyle=linestyles[f])
-    ax.set_title(f'{optimum_type.title()} {optimum_number}')
     ax.set_xlabel(f'Cycle')
     if use_dB:
         ax.set_ylabel(f'Magnitude [dBV]')
@@ -171,7 +188,9 @@ def plot_DI(optimum_type: Optimum, optimum_number: int, use_dB: bool = True, ax:
         ax.legend()
         filepath = PLOT_DIR / f'DI_{optimum_type}_{optimum_number}.png'
         plt.savefig(filepath, dpi=500, bbox_inches='tight')
-        plt.show()
+        # plt.show()
+    else:
+        ax.set_title(f'{optimum_type.title()} {optimum_number}')
     return
 
 

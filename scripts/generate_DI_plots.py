@@ -20,5 +20,10 @@ from shm_ugw_analysis.frequency_domain.welch_psd_peaks import plot_signal_collec
 
 from shm_ugw_analysis.frequency_domain.peaks_damage_indices import search_peaks_arrays, generate_magnitude_array, plot_DI, plot_all_DIs
 
-plot_all_DIs()
-
+plot_DI('maximum', 1)
+# plot_DI('maximum', 2)
+# plot_DI('maximum', 3)
+# plot_DI('minimum', 1)
+# plot_DI('minimum', 2)
+# plot_DI('minimum', 3)
+# plot_DI('minimum', 4)
