@@ -1,4 +1,4 @@
-import src.shm_ugw_analysis.data_io.load_signals as ssumdl
+from ..data_io import load_signals as ssumdl
 import numpy as np 
 from .basic_stats_method import basic_stats_summary
 
