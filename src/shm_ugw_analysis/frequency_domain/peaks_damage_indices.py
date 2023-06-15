@@ -165,7 +165,7 @@ def plot_DI(optimum_type: Optimum, optimum_number: int, use_dB: bool = True, ax:
     }
     show_only_subplot = False
     if ax is None:
-        fig, ax = plt.subplots(1, 1, figsize=(8, 8))
+        fig, ax = plt.subplots(1, 1, figsize=(8, 5.5))
         show_only_subplot = True
     def handle_tick_errors(x, pos):
         try:
@@ -175,7 +175,7 @@ def plot_DI(optimum_type: Optimum, optimum_number: int, use_dB: bool = True, ax:
     ax.xaxis.set_major_formatter(handle_tick_errors)
     for f in allowed_frequencies:
         labels_arr, optima_arr = generate_magnitude_array(optimum_type, optimum_number, f, use_dB)
-        ax.plot(labels_arr, optima_arr, label=f'{f} kHz, averaged over all paths', linestyle=linestyles[f])
+        ax.plot(labels_arr, optima_arr, label=f'{f} kHz', linestyle=linestyles[f])
     ax.set_xlabel(f'Cycle')
     if use_dB:
         ax.set_ylabel(f'Magnitude [dBV]')
@@ -185,7 +185,7 @@ def plot_DI(optimum_type: Optimum, optimum_number: int, use_dB: bool = True, ax:
         label.set_rotation(45)
         label.set_ha('right')
     if show_only_subplot:
-        ax.legend()
+        ax.legend(loc='upper center', bbox_to_anchor=(0.5, 1.07), ncol=5, fancybox=True)
         filepath = PLOT_DIR / f'DI_{optimum_type}_{optimum_number}.png'
         plt.savefig(filepath, dpi=500, bbox_inches='tight')
         # plt.show()
